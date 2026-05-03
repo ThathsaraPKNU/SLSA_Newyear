@@ -1,1 +1,234 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>කිමේ බක්මහ උළෙල AI - Pro Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    
+    <style>
+        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff3131; }
+        body { 
+            margin: 0; background: var(--dark); color: #fff; 
+            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; 
+            align-items: center; min-height: 100vh; overflow: hidden;
+        }
 
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark); z-index: 1000; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
+        }
+        .start-btn { padding: 18px 45px; background: var(--neon); color: #000; border: none; border-radius: 40px; font-weight: bold; font-size: 1.2rem; cursor: pointer; box-shadow: 0 0 20px var(--neon); transition: 0.3s; }
+        .start-btn:hover { transform: scale(1.1); }
+
+        /* UI Elements */
+        .instruction { color: var(--neon); font-size: 1.1rem; margin: 15px 10px; font-weight: bold; text-align: center; min-height: 1.5em; text-transform: uppercase; }
+        
+        #game-container {
+            position: relative; width: 90vw; max-width: 500px; aspect-ratio: 1 / 1;
+            background: #fff url('image_2.png') no-repeat center;
+            background-size: contain; border: 5px solid #333; border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8); overflow: hidden;
+        }
+
+        /* Target (Hidden initially) */
+        #target {
+            position: absolute; width: 30px; height: 30px;
+            background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
+            border-radius: 50%; top: 32.5%; left: 71.3%; 
+            transform: translate(-50%, -50%); display: none; z-index: 50;
+        }
+
+        /* User's Mark */
+        #user-mark {
+            position: absolute; width: 40px; height: 40px;
+            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
+            background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
+        }
+
+        #eye-cursor {
+            position: absolute; width: 45px; height: 45px;
+            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
+            background-size: contain; pointer-events: none; z-index: 100; display: none;
+            filter: drop-shadow(0 0 5px #000);
+        }
+
+        /* Progress Bar for Locking */
+        #lock-timer {
+            position: absolute; bottom: 0; left: 0; height: 8px;
+            background: var(--neon); width: 0%; transition: width 0.1s linear;
+        }
+
+        /* Result Overlay */
+        #result-card {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.9);
+            padding: 20px; border-radius: 15px; border: 2px solid var(--gold);
+            text-align: center; z-index: 200; width: 80%;
+        }
+
+        .score-val { font-size: 3rem; color: var(--gold); font-weight: 900; display: block; }
+        #res-btn { margin-top: 15px; padding: 12px 25px; background: var(--neon); border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+
+        #webcam { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <h1 style="color:var(--gold); margin-bottom:0;">කිමේ බක්මහ උළෙල</h1>
+        <h2 style="color:var(--neon); margin-top:0;">AI අලියාට ඇස තැබීම</h2>
+        <p style="padding: 0 20px; color: #ccc;">අලියාගේ ඇස තිබෙන තැන මතක තබාගෙන, ඇස නොපෙනෙන විට නිවැරදි තැනට ඇස ගෙන ගොස් තප්පර 2ක් අල්ලාගෙන සිටින්න.</p>
+        <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
+    </div>
+
+    <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
+
+    <div id="game-container">
+        <div id="target"></div>
+        <div id="user-mark"></div>
+        <div id="eye-cursor"></div>
+        <div id="lock-timer"></div>
+        
+        <div id="result-card">
+            <h2 id="status-txt">නිවැරදි තාවය</h2>
+            <span class="score-val" id="score-pct">0%</span>
+            <p id="dist-txt"></p>
+            <button id="res-btn" onclick="location.reload()">නැවත උත්සාහ කරන්න 🔄</button>
+        </div>
+        
+        <video id="webcam" playsinline></video>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <div style="font-size: 1.2rem; color: var(--gold); font-weight: bold;">VECTOR LABS & E9 SHOP</div>
+    </div>
+
+    <script type="module">
+        const eye = document.getElementById('eye-cursor');
+        const target = document.getElementById('target');
+        const userMark = document.getElementById('user-mark');
+        const topMsg = document.getElementById('top-msg');
+        const area = document.getElementById('game-container');
+        const timerBar = document.getElementById('lock-timer');
+        const resultCard = document.getElementById('result-card');
+        const videoElement = document.getElementById('webcam');
+
+        let isLocked = false;
+        let lockCounter = 0;
+        const LOCK_THRESHOLD = 40; // Frames to hold (approx 2s)
+        
+        // Random "Dizzy" offset to make it harder
+        let offsetX = (Math.random() - 0.5) * 20;
+        let offsetY = (Math.random() - 0.5) * 20;
+
+        window.startApp = function() {
+            document.getElementById('splash-screen').style.display = 'none';
+            initAI();
+        }
+
+        function calculateScore(ux, uy) {
+            const tx = target.offsetLeft;
+            const ty = target.offsetTop;
+            const maxDist = Math.sqrt(Math.pow(area.offsetWidth, 2) + Math.pow(area.offsetHeight, 2));
+            const dist = Math.sqrt(Math.pow(ux - tx, 2) + Math.pow(uy - ty, 2));
+            
+            // Score Calculation
+            let score = Math.max(0, 100 - (dist / 1.5)); 
+            if (dist < 15) score = 100; // Perfect hit bonus
+
+            return { score: score.toFixed(1), dist: dist.toFixed(0) };
+        }
+
+        function onResults(results) {
+            if (isLocked) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                eye.style.display = 'block';
+                
+                const tip = results.multiHandLandmarks[0][8]; 
+                // Adding a bit of "dizzy" jitter to the movement
+                const jitterX = Math.sin(Date.now() / 200) * 3;
+                const jitterY = Math.cos(Date.now() / 200) * 3;
+
+                const x = (1 - tip.x) * area.offsetWidth + jitterX;
+                const y = tip.y * area.offsetHeight + jitterY;
+
+                eye.style.left = `${x}px`;
+                eye.style.top = `${y}px`;
+
+                // Check if user is holding still (roughly)
+                if (lockCounter === 0) {
+                    topMsg.innerText = "නිවැරදි තැන තෝරා එතැනම නවතින්න...";
+                }
+
+                lockCounter++;
+                let progress = (lockCounter / LOCK_THRESHOLD) * 100;
+                timerBar.style.width = `${progress}%`;
+
+                if (lockCounter >= LOCK_THRESHOLD) {
+                    finalizeMark(x, y);
+                }
+            } else {
+                eye.style.display = 'none';
+                lockCounter = 0;
+                timerBar.style.width = `0%`;
+                topMsg.innerText = "කැමරාවට ඔබේ දබර ඇඟිල්ල පෙන්වන්න";
+            }
+        }
+
+        function finalizeMark(x, y) {
+            isLocked = true;
+            timerBar.style.display = 'none';
+            eye.style.display = 'none';
+            
+            // Reveal Truth
+            target.style.display = 'block';
+            userMark.style.left = `${x}px`;
+            userMark.style.top = `${y}px`;
+            userMark.style.display = 'block';
+
+            const results = calculateScore(x, y);
+            
+            document.getElementById('score-pct').innerText = results.score + "%";
+            document.getElementById('dist-txt').innerText = `ඔබ නියමිත ස්ථානයට පික්සල් ${results.dist} ක් ආසන්නයි!`;
+            
+            if (results.score > 90) {
+                document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
+                topMsg.innerText = "සුපිරිම ඇස තැබීමක්!";
+            } else if (results.score > 60) {
+                document.getElementById('status-txt').innerText = "හොඳයි! 👍";
+            } else {
+                document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
+            }
+
+            resultCard.style.display = 'block';
+        }
+
+        async function initAI() {
+            try {
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({ 
+                    maxNumHands: 1, 
+                    modelComplexity: 1, 
+                    minDetectionConfidence: 0.7, 
+                    minTrackingConfidence: 0.7 
+                });
+                hands.onResults(onResults);
+
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => { await hands.send({image: videoElement}); },
+                    width: 480, height: 480
+                });
+                await camera.start();
+            } catch (err) {
+                topMsg.innerText = "Error: " + err;
+            }
+        }
+    </script>
+</body>
+</html>
