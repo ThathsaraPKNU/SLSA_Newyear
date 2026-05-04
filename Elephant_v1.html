@@ -77,12 +77,6 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Timer Bar */
-        #game-timer-bar {
-            position: absolute; bottom: 0; left: 0; height: 12px;
-            background: var(--neon); width: 100%; transition: width 1s linear;
-        }
-
         /* Results Modal */
         #result-card {
             display: none; position: absolute; top: 50%; left: 50%;
@@ -114,7 +108,7 @@
         
         <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
             <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
-            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම දබර ඇඟිල්ල ඔසවා, තත්පර 15ක් ඇතුළත අලියාගේ ඇස තැබිය යුතු ස්ථානයට අත ගෙන යන්න. තත්පර 15 අවසානයේ අත තියන ස්ථානය සලකුණු වේ. (තිරය මත චලනය වන කුඩා රතු තිත දෙස බලා අත පාලනය කරන්න).
+            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම අත ගෙන ගොස් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>දබර ඇඟිල්ල සහ මහපට ඇඟිල්ල එකට ස්පර්ශ කරන්න (Pinch කරන්න)</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
         </div>
         
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
@@ -127,7 +121,6 @@
         <div id="target"></div>
         <div id="user-mark"></div>
         <div id="eye-cursor"></div>
-        <div id="game-timer-bar"></div>
         
         <div id="result-card">
             <h2 id="status-txt" style="margin:0; color:#fff; font-size: 1.8rem;">ලකුණු මට්ටම</h2>
@@ -150,12 +143,10 @@
         const userMark = document.getElementById('user-mark');
         const topMsg = document.getElementById('top-msg');
         const area = document.getElementById('game-container');
-        const timerBar = document.getElementById('game-timer-bar');
         const resultCard = document.getElementById('result-card');
         const videoElement = document.getElementById('webcam');
 
         let currentPhase = "loading"; 
-        let timeLeft = 15;
         let lastX = 0, lastY = 0;
         let isDone = false;
 
@@ -217,22 +208,7 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "රතු තිත දෙස බලා අලියාට ඇස තබන්න! (Time: 15s)";
-            
-            timeLeft = 15;
-            timerBar.style.background = "var(--neon)";
-
-            const playTimer = setInterval(() => {
-                topMsg.innerText = `ඇස තබන්න: තත්පර ${timeLeft} යි`;
-                let pct = (timeLeft / 15) * 100;
-                timerBar.style.width = `${pct}%`;
-                timeLeft--;
-
-                if (timeLeft < 0 || isDone) {
-                    clearInterval(playTimer);
-                    finalizeMark();
-                }
-            }, 1000);
+            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරන්න! (Pinch)";
         }
 
         function onResults(results) {
@@ -240,17 +216,33 @@
             
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 eye.style.display = 'block';
-                const tip = results.multiHandLandmarks[0][8]; 
+                const hand = results.multiHandLandmarks[0];
                 
-                // Mirror fixed: Using (1 - tip.x) so left hand movement goes left
-                const x = (1 - tip.x) * area.offsetWidth;
-                const y = tip.y * area.offsetHeight;
+                const thumbTip = hand[4];
+                const indexTip = hand[8]; 
+                
+                // 1. Cursor movement mapping (Mirror corrected)
+                const x = (1 - indexTip.x) * area.offsetWidth;
+                const y = indexTip.y * area.offsetHeight;
 
                 eye.style.left = `${x}px`;
                 eye.style.top = `${y}px`;
 
                 lastX = x;
                 lastY = y;
+
+                // 2. Pinch Gesture detection logic
+                // Distance between Thumb Tip and Index Tip
+                const distance = Math.sqrt(
+                    Math.pow(thumbTip.x - indexTip.x, 2) + 
+                    Math.pow(thumbTip.y - indexTip.y, 2) +
+                    Math.pow(thumbTip.z - indexTip.z, 2)
+                );
+
+                // Threshold distance for a pinch
+                if (distance < 0.08) {
+                    finalizeMark();
+                }
             } else {
                 eye.style.display = 'none';
             }
@@ -261,7 +253,6 @@
             isDone = true;
 
             currentPhase = "result";
-            timerBar.style.display = 'none';
             eye.style.display = 'none';
             
             if(lastX === 0 && lastY === 0) {
