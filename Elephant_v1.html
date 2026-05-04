@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline'; font-src * data:;">
-    <title>කිමේ බක්මහ උළෙල AI - Game Expert Edition</title>
+    <title>අලියාට ඇස තැබීම: AI Edition</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
@@ -28,6 +28,7 @@
             border-radius: 40px; font-weight: bold; font-size: 1.2rem; cursor: pointer; 
             box-shadow: 0 0 20px var(--neon); transition: 0.3s; 
         }
+        .start-btn:hover { transform: scale(1.05); }
 
         .instruction { color: var(--neon); font-size: 1.2rem; margin: 15px 10px; font-weight: bold; text-align: center; min-height: 1.5em; }
         
@@ -38,7 +39,7 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.8); overflow: hidden;
         }
 
-        /* Target */
+        /* Target - Hidden from the start */
         #target {
             position: absolute; width: 32px; height: 32px;
             background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
@@ -64,7 +65,7 @@
         /* Game Phase Timers */
         #game-timer-bar {
             position: absolute; bottom: 0; left: 0; height: 10px;
-            background: var(--gold); width: 100%; transition: width 1s linear;
+            background: var(--neon); width: 100%; transition: width 1s linear;
         }
 
         /* Results Modal */
@@ -89,15 +90,19 @@
 <body>
 
     <div id="splash-screen">
-        <h1 style="color:var(--gold); margin-bottom:5px;">කිමේ බක්මහ උළෙල - 2026</h1>
-        <h2 style="color:var(--neon); margin-top:0;">AI අලියාට ඇස තැබීම</h2>
-        <div style="padding: 0 30px; color: #ccc; max-width: 420px; line-height: 1.6; font-size: 1rem;">
-            <b>පියවර 1:</b> තත්පර 5ක් ඇස තිබෙන තැන මතක තබා ගන්න.<br>
-            <b>පියවර 2:</b> ඉන්පසු ක්‍රීඩකයාගේ ඇස් බඳින්න.<br>
-            <b>පියවර 3:</b> තත්පර 15ක් ඇතුළත කැමරාවට ඇඟිල්ල පෙන්වා නිවැරදි තැනට ඇස ගෙන යන්න.
+        <div style="font-size: 1.1rem; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
+        <div style="font-size: 1.2rem; color: #fff; font-weight: bold; margin-bottom: 15px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
+        
+        <h1 style="color:var(--gold); margin: 5px 0; font-size: 2.3rem;">අලියාට ඇස තැබීම</h1>
+        <h2 style="color:var(--neon); margin: 0 0 25px 0; font-size: 1.5rem;">AI Edition</h2>
+        
+        <div style="padding: 0 30px; color: #ccc; max-width: 420px; line-height: 1.6; font-size: 1rem; margin-bottom: 30px;">
+            <b>ක්රීඩා කරන ආකාරය:</b><br>
+            ක්රීඩකයාගේ ඇස් රෙදි කඩකින් බඳින්න. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම දබර ඇඟිල්ල ඔසවා, තත්පර 15ක් ඇතුළත මතකයෙන් අලියාගේ ඇස තැබිය යුතු ස්ථානයට ඇස ගෙන යන්න.
         </div>
-        <br>
+        
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
+        <div style="margin-top: 35px; font-size: 0.85rem; color: #555;">Presented by Vector Labs AI & E9 Shop</div>
     </div>
 
     <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
@@ -119,8 +124,8 @@
     </div>
 
     <div class="branding-section">
-        <div style="font-size: 1.6rem; color: var(--gold); font-weight: 900;">කිමේ බක්මහ උළෙල - 2026</div>
-        <div style="color: #bbb; letter-spacing: 1.5px; font-size: 0.9rem;">PRESENTED BY <b>VECTOR LABS & E9 SHOP</b></div>
+        <div style="font-size: 1.6rem; color: var(--gold); font-weight: 900;">අලියාට ඇස තැබීම: AI Edition</div>
+        <div style="color: #bbb; letter-spacing: 1.2px; font-size: 0.85rem; margin-top: 4px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
     </div>
 
     <script type="module">
@@ -134,7 +139,7 @@
         const videoElement = document.getElementById('webcam');
 
         let currentPhase = "loading"; 
-        let timeLeft = 5;
+        let timeLeft = 15;
         let lastX = 0, lastY = 0;
         let isDone = false;
 
@@ -156,37 +161,18 @@
                 });
                 await camera.start();
                 
-                // Start Sight Phase
-                startSightPhase();
+                // Start Play Phase Directly
+                startPlayPhase();
             } catch (err) {
                 topMsg.innerText = "කැමරාව ක්‍රියාත්මක කිරීමට නොහැකි විය.";
             }
         }
 
-        function startSightPhase() {
-            currentPhase = "sight";
-            target.style.display = 'block'; // Show target for 5 seconds
-            timeLeft = 5;
-            topMsg.style.color = "var(--gold)";
-            
-            const sightTimer = setInterval(() => {
-                topMsg.innerText = `ඇස තිබෙන තැන බලාගන්න: තත්පර ${timeLeft}`;
-                let pct = (timeLeft / 5) * 100;
-                timerBar.style.width = `${pct}%`;
-                timeLeft--;
-
-                if (timeLeft < 0) {
-                    clearInterval(sightTimer);
-                    startBlindfoldPhase();
-                }
-            }, 1000);
-        }
-
-        function startBlindfoldPhase() {
+        function startPlayPhase() {
             currentPhase = "play";
-            target.style.display = 'none'; // Hide the target
+            target.style.display = 'none'; // Ensure target is hidden
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "දැන් ක්‍රීඩකයාගේ ඇස් බඳින්න! (Time: 15s)";
+            topMsg.innerText = "දැන් ඇස් බැඳි ක්‍රීඩකයා ඇඟිල්ලෙන් ඇස තබන්න! (Time: 15s)";
             
             timeLeft = 15;
             timerBar.style.background = "var(--neon)";
@@ -233,13 +219,13 @@
             timerBar.style.display = 'none';
             eye.style.display = 'none';
             
-            // If the user didn't move the cursor at all, put it in center
+            // If the user didn't move the cursor, put it in center
             if(lastX === 0 && lastY === 0) {
                 lastX = area.offsetWidth / 2;
                 lastY = area.offsetHeight / 2;
             }
 
-            // Reveal True Target and User Placement
+            // Reveal true target and user mark
             target.style.display = 'block';
             userMark.style.left = `${lastX}px`;
             userMark.style.top = `${lastY}px`;
@@ -250,6 +236,7 @@
             const ty = target.offsetTop;
             const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
             
+            // Generate a percentage score based on distance
             let score = Math.max(0, 100 - (dist / 2.3));
             if (dist < 12) score = 100;
 
@@ -258,10 +245,14 @@
 
             if (score > 85) {
                 document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
+                topMsg.innerText = "🎉 සුපිරි! ඔබ නිවැරදිව ඇස තැබුවා!";
+                topMsg.style.color = "#39ff14";
             } else if (score > 60) {
                 document.getElementById('status-txt').innerText = "හොඳයි! 👍";
+                topMsg.innerText = "හොඳ උත්සාහයක්!";
             } else {
                 document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
+                topMsg.innerText = "ලකුණු මදි වගේ!";
             }
 
             resultCard.style.display = 'block';
