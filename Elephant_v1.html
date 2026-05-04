@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     
     <style>
-        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff3131; }
+        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; }
         
         body { 
             margin: 0; background: var(--dark); color: #fff; 
@@ -49,7 +49,7 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.9); overflow: hidden;
         }
 
-        /* Target */
+        /* Actual Target Position (Initially Hidden) */
         #target {
             position: absolute; width: 32px; height: 32px;
             background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
@@ -57,19 +57,27 @@
             transform: translate(-50%, -50%); display: none; z-index: 50;
         }
 
-        /* User's Mark */
+        /* User's final mark (After 15s) */
         #user-mark {
             position: absolute; width: 45px; height: 45px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
         }
 
-        /* Pointer Cursor */
+        /* Pointer Cursor (New Change): 
+           Replaced the stopwatch image with a small glowing red dot 
+        */
         #eye-cursor {
-            position: absolute; width: 48px; height: 48px;
-            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
-            background-size: contain; pointer-events: none; z-index: 100; display: none;
-            filter: drop-shadow(0 0 6px #000); transform: translate(-50%, -50%);
+            position: absolute; 
+            width: 15px; height: 15px; /* Sizing it like a dot */
+            background-color: var(--red);
+            border-radius: 50%;
+            pointer-events: none; 
+            z-index: 100; 
+            display: none;
+            /* Added a 'glowing' effect */
+            box-shadow: 0 0 10px 4px rgba(255, 17, 17, 0.7);
+            transform: translate(-50%, -50%);
         }
 
         /* Timer Bar */
@@ -109,7 +117,7 @@
         
         <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
             <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
-            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම දබර ඇඟිල්ල ඔසවා, තත්පර 15ක් ඇතුළත අලියාගේ ඇස තැබිය යුතු ස්ථානයට අත ගෙන යන්න. තත්පර 15 අවසානයේ අත තියන ස්ථානය සලකුණු වේ.
+            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම දබර ඇඟිල්ල ඔසවා, තත්පර 15ක් ඇතුළත අලියාගේ ඇස තැබිය යුතු ස්ථානයට අත ගෙන යන්න. තත්පර 15 අවසානයේ අත තියන ස්ථානය සලකුණු වේ. (තිරය මත චලනය වන කුඩා රතු තිත දෙස බලා අත පාලනය කරන්න).
         </div>
         
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
@@ -121,8 +129,7 @@
     <div id="game-container">
         <div id="target"></div>
         <div id="user-mark"></div>
-        <div id="eye-cursor"></div>
-        <div id="game-timer-bar"></div>
+        <div id="eye-cursor"></div> <div id="game-timer-bar"></div>
         
         <div id="result-card">
             <h2 id="status-txt" style="margin:0; color:#fff; font-size: 1.8rem;">ලකුණු මට්ටම</h2>
@@ -154,12 +161,12 @@
         let lastX = 0, lastY = 0;
         let isDone = false;
 
-        // Sound effect using Web Audio API
+        // Chime Sound using Web Audio API (Plays at the end)
         function playChimeSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // First note
+                // Note 1
                 const osc1 = ctx.createOscillator();
                 const gain1 = ctx.createGain();
                 osc1.type = "triangle";
@@ -171,7 +178,7 @@
                 osc1.start();
                 osc1.stop(ctx.currentTime + 0.4);
 
-                // Second note (a bit higher for victory feel)
+                // Note 2
                 const osc2 = ctx.createOscillator();
                 const gain2 = ctx.createGain();
                 osc2.type = "triangle";
@@ -215,7 +222,7 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "අලියාට ඇස තබන්න! (Time: 15s)";
+            topMsg.innerText = "රතු තිත දෙස බලා අලියාට ඇස තබන්න! (Time: 15s)";
             
             timeLeft = 15;
             timerBar.style.background = "var(--neon)";
@@ -237,10 +244,11 @@
             if (currentPhase !== "play" || isDone) return;
             
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                eye.style.display = 'block';
+                eye.style.display = 'block'; // Show the glowing red dot
                 const tip = results.multiHandLandmarks[0][8]; 
                 
-                const x = (1 - tip.x) * area.offsetWidth;
+                // Screen Mapping (Normal, not flipped, for natural hand feel)
+                const x = tip.x * area.offsetWidth;
                 const y = tip.y * area.offsetHeight;
 
                 eye.style.left = `${x}px`;
@@ -259,25 +267,28 @@
 
             currentPhase = "result";
             timerBar.style.display = 'none';
-            eye.style.display = 'none';
+            eye.style.display = 'none'; // Hide the red dot
             
             if(lastX === 0 && lastY === 0) {
                 lastX = area.offsetWidth / 2;
                 lastY = area.offsetHeight / 2;
             }
 
+            // Reveal True Target, and User Placement
             target.style.display = 'block';
             userMark.style.left = `${lastX}px`;
             userMark.style.top = `${lastY}px`;
             userMark.style.display = 'block';
 
-            // Play the victory sound when score marks
+            // Play the chime sound
             playChimeSound();
 
+            // Score Calculation
             const tx = target.offsetLeft;
             const ty = target.offsetTop;
             const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
             
+            // Percentage score based on distance
             let score = Math.max(0, 100 - (dist / 2.5));
             if (dist < 12) score = 100;
 
