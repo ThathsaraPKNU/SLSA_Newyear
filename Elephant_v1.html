@@ -19,14 +19,12 @@
             min-height: 100vh; overflow: hidden; padding: 10px 0; box-sizing: border-box;
         }
 
-        /* Splash Screen Stylings */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
         
-        /* Reduced splash logo size a little bit more */
         .main-logo-big {
             width: 120px; height: 120px; margin-bottom: 20px;
             filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
@@ -170,8 +168,9 @@
         let lastX = 0, lastY = 0;
         let isDone = false;
         let gestureActive = false; 
+        
         let pinchStartTime = null;
-        const requiredPinchDuration = 600; 
+        const requiredPinchDuration = 300; // කලින් 600ms තිබුණු එක 300ms (තත්පර 0.3) දක්වා අඩු කළා
 
         function playChimeSound() {
             try {
@@ -212,7 +211,12 @@
             topMsg.innerText = "කැමරාව ක්‍රියාත්මක වෙමින් පවතී...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+                hands.setOptions({ 
+                    maxNumHands: 1, 
+                    modelComplexity: 1, 
+                    minDetectionConfidence: 0.6, 
+                    minTrackingConfidence: 0.6 
+                });
                 hands.onResults(onResults);
 
                 const camera = new Camera(videoElement, {
@@ -235,7 +239,7 @@
 
             setTimeout(() => {
                 gestureActive = true;
-            }, 2000);
+            }, 1500);
         }
 
         function onResults(results) {
@@ -264,7 +268,8 @@
                         Math.pow(thumbTip.z - indexTip.z, 2)
                     );
 
-                    if (distance < 0.038) {
+                    // Adjusted from 0.038 to 0.042 for better sensitivity
+                    if (distance < 0.042) {
                         if (!pinchStartTime) {
                             pinchStartTime = Date.now(); 
                         } else {
