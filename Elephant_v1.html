@@ -149,6 +149,7 @@
         let currentPhase = "loading"; 
         let lastX = 0, lastY = 0;
         let isDone = false;
+        let gestureActive = false; // Cooldown flag
 
         function playChimeSound() {
             try {
@@ -208,7 +209,12 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරන්න! (Pinch)";
+            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරන්න (Pinch)!";
+
+            // Allow gesture after a 2-second setup cooldown
+            setTimeout(() => {
+                gestureActive = true;
+            }, 2000);
         }
 
         function onResults(results) {
@@ -231,17 +237,18 @@
                 lastX = x;
                 lastY = y;
 
-                // 2. Pinch Gesture detection logic
-                // Distance between Thumb Tip and Index Tip
-                const distance = Math.sqrt(
-                    Math.pow(thumbTip.x - indexTip.x, 2) + 
-                    Math.pow(thumbTip.y - indexTip.y, 2) +
-                    Math.pow(thumbTip.z - indexTip.z, 2)
-                );
+                // 2. Pinch Gesture detection logic (Only active after cooldown)
+                if (gestureActive) {
+                    const distance = Math.sqrt(
+                        Math.pow(thumbTip.x - indexTip.x, 2) + 
+                        Math.pow(thumbTip.y - indexTip.y, 2) +
+                        Math.pow(thumbTip.z - indexTip.z, 2)
+                    );
 
-                // Threshold distance for a pinch
-                if (distance < 0.08) {
-                    finalizeMark();
+                    // Adjusted distance limit for higher accuracy
+                    if (distance < 0.045) {
+                        finalizeMark();
+                    }
                 }
             } else {
                 eye.style.display = 'none';
