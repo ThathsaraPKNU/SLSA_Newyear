@@ -3,127 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline'; font-src * data:;">
-    
-    <title>කිමේ බක්මහ උළෙල AI - Pro Edition</title>
+    <title>කිමේ බක්මහ උළෙල AI - Game Expert Edition</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     
     <style>
-        :root { 
-            --gold: #ffcc00; 
-            --neon: #39ff14; 
-            --dark: #050505; 
-            --red: #ff3131; 
-        }
-        
+        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff3131; }
         body { 
-            margin: 0; 
-            background: var(--dark); 
-            color: #fff; 
-            /* Using safe standard system fonts to prevent CSP font issues */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            overflow-x: hidden;
+            margin: 0; background: var(--dark); color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden;
         }
 
         /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            text-align: center;
+            flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
-        
-        .splash-title { font-size: 2.2rem; color: var(--gold); font-weight: 900; margin-bottom: 5px; }
-        .splash-sub { font-size: 1.4rem; color: var(--neon); font-weight: bold; margin-bottom: 25px; }
-        
         .start-btn { 
             padding: 18px 45px; background: var(--neon); color: #000; border: none; 
             border-radius: 40px; font-weight: bold; font-size: 1.2rem; cursor: pointer; 
             box-shadow: 0 0 20px var(--neon); transition: 0.3s; 
         }
-        .start-btn:hover { transform: scale(1.05); }
 
-        /* UI Elements */
-        .instruction { color: var(--neon); font-size: 1.1rem; margin: 15px 10px; font-weight: bold; text-align: center; min-height: 1.5em; }
+        .instruction { color: var(--neon); font-size: 1.2rem; margin: 15px 10px; font-weight: bold; text-align: center; min-height: 1.5em; }
         
         #game-container {
-            position: relative; width: 90vw; max-width: 500px; aspect-ratio: 1 / 1;
+            position: relative; width: 90vw; max-width: 480px; aspect-ratio: 1 / 1;
             background: #fff url('image_2.png') no-repeat center;
             background-size: contain; border: 5px solid #333; border-radius: 20px;
             box-shadow: 0 0 40px rgba(0,0,0,0.8); overflow: hidden;
         }
 
-        /* Target (Initially Hidden) */
+        /* Target */
         #target {
-            position: absolute; width: 30px; height: 30px;
+            position: absolute; width: 32px; height: 32px;
             background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
             border-radius: 50%; top: 32.5%; left: 71.3%; 
             transform: translate(-50%, -50%); display: none; z-index: 50;
         }
 
-        /* User's final placed mark */
+        /* User's Mark */
         #user-mark {
-            position: absolute; width: 40px; height: 40px;
+            position: absolute; width: 42px; height: 42px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
         }
 
-        /* Hand Tracking Pointer cursor */
+        /* Cursor */
         #eye-cursor {
             position: absolute; width: 45px; height: 45px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; pointer-events: none; z-index: 100; display: none;
-            filter: drop-shadow(0 0 5px #000);
-            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 5px #000); transform: translate(-50%, -50%);
         }
 
-        /* Progress Bar for Locking */
-        #lock-timer {
-            position: absolute; bottom: 0; left: 0; height: 8px;
-            background: var(--neon); width: 0%; transition: width 0.1s linear;
+        /* Game Phase Timers */
+        #game-timer-bar {
+            position: absolute; bottom: 0; left: 0; height: 10px;
+            background: var(--gold); width: 100%; transition: width 1s linear;
         }
 
-        /* Result Overlay */
+        /* Results Modal */
         #result-card {
             display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: rgba(0,0,0,0.92);
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.94);
             padding: 25px; border-radius: 15px; border: 2px solid var(--gold);
-            text-align: center; z-index: 200; width: 80%;
-            box-sizing: border-box;
+            text-align: center; z-index: 200; width: 85%; box-sizing: border-box;
         }
 
-        .score-val { font-size: 3.2rem; color: var(--gold); font-weight: 900; display: block; margin: 10px 0; }
+        .score-val { font-size: 3.5rem; color: var(--gold); font-weight: 900; display: block; margin: 10px 0; }
         
         #res-btn { 
             margin-top: 15px; padding: 12px 30px; background: var(--neon); color: #000; 
             border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1rem;
-            transition: 0.2s;
         }
-        #res-btn:hover { transform: scale(1.05); }
 
         .branding-section { width: 100%; text-align: center; padding: 20px 10px; }
-        .main-topic-highlight { font-size: 1.8rem; color: var(--gold); font-weight: 900; margin: 5px 0; }
-        .sponsored-text { font-size: 1rem; color: #ccc; letter-spacing: 1.5px; }
-        .sponsored-text b { color: #fff; font-weight: 900; }
-
         #webcam { display: none; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <div class="splash-title">කිමේ බක්මහ උළෙල - 2026</div>
-        <div class="splash-sub">AI අලියාට ඇස තැබීම</div>
-        <p style="padding: 0 30px; color: #bbb; max-width: 400px; line-height: 1.5;">අලියාගේ ඇස තිබෙන තැන මතක තබාගෙන, ඇඟිල්ලෙන් ඇස ගෙන ගොස් තත්පර 2ක් එකම තැනක තබාගෙන සිටින්න.</p>
+        <h1 style="color:var(--gold); margin-bottom:5px;">කිමේ බක්මහ උළෙල - 2026</h1>
+        <h2 style="color:var(--neon); margin-top:0;">AI අලියාට ඇස තැබීම</h2>
+        <div style="padding: 0 30px; color: #ccc; max-width: 420px; line-height: 1.6; font-size: 1rem;">
+            <b>පියවර 1:</b> තත්පර 5ක් ඇස තිබෙන තැන මතක තබා ගන්න.<br>
+            <b>පියවර 2:</b> ඉන්පසු ක්‍රීඩකයාගේ ඇස් බඳින්න.<br>
+            <b>පියවර 3:</b> තත්පර 15ක් ඇතුළත කැමරාවට ඇඟිල්ල පෙන්වා නිවැරදි තැනට ඇස ගෙන යන්න.
+        </div>
+        <br>
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
-        <div style="margin-top: 30px; font-size: 0.85rem; color: #666;">Presented by Vector Labs AI & E9 Shop</div>
     </div>
 
     <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
@@ -132,7 +106,7 @@
         <div id="target"></div>
         <div id="user-mark"></div>
         <div id="eye-cursor"></div>
-        <div id="lock-timer"></div>
+        <div id="game-timer-bar"></div>
         
         <div id="result-card">
             <h2 id="status-txt" style="margin:0; color:#fff;">ලකුණු මට්ටම</h2>
@@ -145,8 +119,8 @@
     </div>
 
     <div class="branding-section">
-        <div class="main-topic-highlight">කිමේ බක්මහ උළෙල - 2026</div>
-        <div class="sponsored-text">PRESENTED BY <b>VECTOR LABS & E9 SHOP</b></div>
+        <div style="font-size: 1.6rem; color: var(--gold); font-weight: 900;">කිමේ බක්මහ උළෙල - 2026</div>
+        <div style="color: #bbb; letter-spacing: 1.5px; font-size: 0.9rem;">PRESENTED BY <b>VECTOR LABS & E9 SHOP</b></div>
     </div>
 
     <script type="module">
@@ -155,111 +129,25 @@
         const userMark = document.getElementById('user-mark');
         const topMsg = document.getElementById('top-msg');
         const area = document.getElementById('game-container');
-        const timerBar = document.getElementById('lock-timer');
+        const timerBar = document.getElementById('game-timer-bar');
         const resultCard = document.getElementById('result-card');
         const videoElement = document.getElementById('webcam');
 
-        let isLocked = false;
-        let lockCounter = 0;
-        const LOCK_THRESHOLD = 35; // Number of frames to hold still (~1.5 to 2 seconds)
+        let currentPhase = "loading"; 
+        let timeLeft = 5;
+        let lastX = 0, lastY = 0;
+        let isDone = false;
 
         window.startApp = function() {
             document.getElementById('splash-screen').style.display = 'none';
             initAI();
         }
 
-        function calculateScore(ux, uy) {
-            const tx = target.offsetLeft;
-            const ty = target.offsetTop;
-            
-            // Calculate distance between user placement and the actual target
-            const dist = Math.sqrt(Math.pow(ux - tx, 2) + Math.pow(uy - ty, 2));
-            
-            // Generate a percentage score based on distance
-            let score = Math.max(0, 100 - (dist / 2.2)); 
-            if (dist < 12) score = 100; // Bonus for a very accurate hit
-
-            return { score: score.toFixed(1), dist: dist.toFixed(0) };
-        }
-
-        function onResults(results) {
-            if (isLocked) return;
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                eye.style.display = 'block';
-                
-                const tip = results.multiHandLandmarks[0][8]; // Index finger tip
-                
-                // Jitter effect to make the blind alignment a bit more challenging
-                const jitterX = Math.sin(Date.now() / 150) * 4;
-                const jitterY = Math.cos(Date.now() / 150) * 4;
-
-                const x = (1 - tip.x) * area.offsetWidth + jitterX;
-                const y = tip.y * area.offsetHeight + jitterY;
-
-                eye.style.left = `${x}px`;
-                eye.style.top = `${y}px`;
-
-                if (lockCounter === 0) {
-                    topMsg.innerText = "නිවැරදි තැන තෝරා එතැනම නවතින්න...";
-                }
-
-                lockCounter++;
-                let progress = (lockCounter / LOCK_THRESHOLD) * 100;
-                timerBar.style.width = `${progress}%`;
-
-                if (lockCounter >= LOCK_THRESHOLD) {
-                    finalizeMark(x, y);
-                }
-            } else {
-                eye.style.display = 'none';
-                lockCounter = 0;
-                timerBar.style.width = `0%`;
-                topMsg.innerText = "කැමරාවට ඔබේ දබර ඇඟිල්ල පෙන්වන්න...";
-            }
-        }
-
-        function finalizeMark(x, y) {
-            isLocked = true;
-            timerBar.style.display = 'none';
-            eye.style.display = 'none';
-            
-            // Reveal target and mark placement
-            target.style.display = 'block';
-            userMark.style.left = `${x}px`;
-            userMark.style.top = `${y}px`;
-            userMark.style.display = 'block';
-
-            const results = calculateScore(x, y);
-            
-            document.getElementById('score-pct').innerText = results.score + "%";
-            document.getElementById('dist-txt').innerText = `ඔබ නියමිත ස්ථානයට පික්සල් ${results.dist} ක් ආසන්නයි!`;
-            
-            if (results.score > 85) {
-                document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
-                topMsg.innerText = "🎉 සුපිරි! ඔබ නිවැරදිව ඇස තැබුවා!";
-                topMsg.style.color = "#39ff14";
-            } else if (results.score > 60) {
-                document.getElementById('status-txt').innerText = "හොඳයි! 👍";
-                topMsg.innerText = "හොඳ උත්සාහයක්!";
-            } else {
-                document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
-                topMsg.innerText = "ලකුණු මදි වගේ!";
-            }
-
-            resultCard.style.display = 'block';
-        }
-
         async function initAI() {
-            topMsg.innerText = "AI පද්ධතිය සූදානම් වෙමින් පවතී...";
+            topMsg.innerText = "කැමරාව ක්‍රියාත්මක වෙමින් පවතී...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ 
-                    maxNumHands: 1, 
-                    modelComplexity: 1, 
-                    minDetectionConfidence: 0.6, 
-                    minTrackingConfidence: 0.6 
-                });
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
                 hands.onResults(onResults);
 
                 const camera = new Camera(videoElement, {
@@ -267,10 +155,116 @@
                     width: 480, height: 480
                 });
                 await camera.start();
-                topMsg.innerText = "දබර ඇඟිල්ලෙන් ඇස පාලනය කරන්න";
+                
+                // Start Sight Phase
+                startSightPhase();
             } catch (err) {
-                topMsg.innerText = "කැමරාව ක්‍රියාත්මක කිරීමට නොහැකි විය. නැවත Reload කරන්න.";
+                topMsg.innerText = "කැමරාව ක්‍රියාත්මක කිරීමට නොහැකි විය.";
             }
+        }
+
+        function startSightPhase() {
+            currentPhase = "sight";
+            target.style.display = 'block'; // Show target for 5 seconds
+            timeLeft = 5;
+            topMsg.style.color = "var(--gold)";
+            
+            const sightTimer = setInterval(() => {
+                topMsg.innerText = `ඇස තිබෙන තැන බලාගන්න: තත්පර ${timeLeft}`;
+                let pct = (timeLeft / 5) * 100;
+                timerBar.style.width = `${pct}%`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(sightTimer);
+                    startBlindfoldPhase();
+                }
+            }, 1000);
+        }
+
+        function startBlindfoldPhase() {
+            currentPhase = "play";
+            target.style.display = 'none'; // Hide the target
+            topMsg.style.color = "var(--neon)";
+            topMsg.innerText = "දැන් ක්‍රීඩකයාගේ ඇස් බඳින්න! (Time: 15s)";
+            
+            timeLeft = 15;
+            timerBar.style.background = "var(--neon)";
+
+            const playTimer = setInterval(() => {
+                topMsg.innerText = `ඇස තබන්න: තත්පර ${timeLeft} යි`;
+                let pct = (timeLeft / 15) * 100;
+                timerBar.style.width = `${pct}%`;
+                timeLeft--;
+
+                if (timeLeft < 0 || isDone) {
+                    clearInterval(playTimer);
+                    finalizeMark();
+                }
+            }, 1000);
+        }
+
+        function onResults(results) {
+            if (currentPhase !== "play" || isDone) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                eye.style.display = 'block';
+                const tip = results.multiHandLandmarks[0][8]; 
+                
+                // Screen Mapping
+                const x = (1 - tip.x) * area.offsetWidth;
+                const y = tip.y * area.offsetHeight;
+
+                eye.style.left = `${x}px`;
+                eye.style.top = `${y}px`;
+
+                lastX = x;
+                lastY = y;
+            } else {
+                eye.style.display = 'none';
+            }
+        }
+
+        function finalizeMark() {
+            if (isDone) return;
+            isDone = true;
+
+            currentPhase = "result";
+            timerBar.style.display = 'none';
+            eye.style.display = 'none';
+            
+            // If the user didn't move the cursor at all, put it in center
+            if(lastX === 0 && lastY === 0) {
+                lastX = area.offsetWidth / 2;
+                lastY = area.offsetHeight / 2;
+            }
+
+            // Reveal True Target and User Placement
+            target.style.display = 'block';
+            userMark.style.left = `${lastX}px`;
+            userMark.style.top = `${lastY}px`;
+            userMark.style.display = 'block';
+
+            // Score Calculation
+            const tx = target.offsetLeft;
+            const ty = target.offsetTop;
+            const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
+            
+            let score = Math.max(0, 100 - (dist / 2.3));
+            if (dist < 12) score = 100;
+
+            document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
+            document.getElementById('dist-txt').innerText = `ඔබ නියමිත ස්ථානයට පික්සල් ${dist.toFixed(0)} ක් ආසන්නයි!`;
+
+            if (score > 85) {
+                document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
+            } else if (score > 60) {
+                document.getElementById('status-txt').innerText = "හොඳයි! 👍";
+            } else {
+                document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
+            }
+
+            resultCard.style.display = 'block';
         }
     </script>
 </body>
