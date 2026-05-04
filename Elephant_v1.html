@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline'; font-src * data:;">
-    <title>අලියාට ඇස තැබීම: AI Edition</title>
+    <title>අලියාට ඇස තැබීම: AI Edition - SLSA Korea</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
@@ -19,12 +19,18 @@
             min-height: 100vh; overflow: hidden; padding: 10px 0; box-sizing: border-box;
         }
 
+        /* Splash Screen Stylings */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
         
+        .main-logo-big {
+            width: 180px; height: 180px; margin-bottom: 25px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+        }
+
         .start-btn { 
             padding: 20px 55px; background: var(--neon); color: #000; border: none; 
             border-radius: 45px; font-weight: bold; font-size: 1.4rem; cursor: pointer; 
@@ -61,13 +67,9 @@
         }
 
         #eye-cursor {
-            position: absolute; 
-            width: 15px; height: 15px; 
-            background-color: var(--red);
-            border-radius: 50%;
-            pointer-events: none; 
-            z-index: 100; 
-            display: none;
+            position: absolute; width: 15px; height: 15px; 
+            background-color: var(--red); border-radius: 50%;
+            pointer-events: none; z-index: 100; display: none;
             box-shadow: 0 0 10px 4px rgba(255, 17, 17, 0.7);
             transform: translate(-50%, -50%);
         }
@@ -87,15 +89,26 @@
             border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
         }
 
-        .branding-section { width: 100%; text-align: center; padding-bottom: 10px; }
+        .branding-section { 
+            width: 100%; text-align: center; padding-bottom: 10px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        
+        .bottom-logo {
+            width: 40px; height: 40px; margin-right: 12px;
+            filter: brightness(0.8) contrast(1.2);
+        }
+
         #webcam { display: none; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
+        <img src="image_1.png" alt="SLSA Korea Logo" class="main-logo-big">
+        
         <div style="font-size: 1.2rem; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
-        <div style="font-size: 1.4rem; color: #fff; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව (SLSA Korea)</div>
+        <div style="font-size: 1.4rem; color: #fff; font-weight: bold; margin-bottom: 15px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
         
         <h1 style="color:var(--gold); margin: 5px 0; font-size: 2.8rem;">අලියාට ඇස තැබීම</h1>
         <h2 style="color:var(--neon); margin: 0 0 20px 0; font-size: 1.8rem;">AI Edition</h2>
@@ -127,8 +140,13 @@
     </div>
 
     <div class="branding-section">
-        <div style="font-size: 1.5rem; color: var(--gold); font-weight: 900;">අලියාට ඇස තැබීම: AI Edition</div>
-        <div style="color: #bbb; letter-spacing: 1.2px; font-size: 1rem; margin-top: 4px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
+        <div style="display: flex; align-items: center;">
+            <img src="image_1.png" alt="SLSA Korea Logo" class="bottom-logo">
+            <div>
+                <div style="font-size: 1.5rem; color: var(--gold); font-weight: 900;">අලියාට ඇස තැබීම: AI Edition</div>
+                <div style="color: #bbb; letter-spacing: 1.2px; font-size: 1rem; margin-top: 4px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -144,10 +162,8 @@
         let lastX = 0, lastY = 0;
         let isDone = false;
         let gestureActive = false; 
-
-        // Duration tracking variables
         let pinchStartTime = null;
-        const requiredPinchDuration = 600; // තත්පර 0.6ක් එක දිගට Pinch එක තියාගන්න ඕනේ
+        const requiredPinchDuration = 600; 
 
         function playChimeSound() {
             try {
@@ -207,7 +223,7 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරගෙන සිටින්න!";
+            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරගෙන සිටින්න්න!";
 
             setTimeout(() => {
                 gestureActive = true;
@@ -240,10 +256,9 @@
                         Math.pow(thumbTip.z - indexTip.z, 2)
                     );
 
-                    // Tightened distance threshold to prevent false triggers
                     if (distance < 0.038) {
                         if (!pinchStartTime) {
-                            pinchStartTime = Date.now(); // Start timing
+                            pinchStartTime = Date.now(); 
                         } else {
                             const elapsed = Date.now() - pinchStartTime;
                             if (elapsed >= requiredPinchDuration) {
@@ -251,12 +266,12 @@
                             }
                         }
                     } else {
-                        pinchStartTime = null; // Reset timing if pinch is released or not detected
+                        pinchStartTime = null; 
                     }
                 }
             } else {
                 eye.style.display = 'none';
-                pinchStartTime = null; // Reset timing if hand is lost
+                pinchStartTime = null; 
             }
         }
 
