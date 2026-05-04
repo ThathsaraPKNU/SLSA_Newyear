@@ -95,14 +95,14 @@
 
     <div id="splash-screen">
         <div style="font-size: 1.2rem; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
-        <div style="font-size: 1.4rem; color: #fff; font-weight: bold; margin-bottom: 10px;">දකුණු කොරියාවේ ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය (SLSA Korea)</div>
+        <div style="font-size: 1.4rem; color: #fff; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව (SLSA Korea)</div>
         
         <h1 style="color:var(--gold); margin: 5px 0; font-size: 2.8rem;">අලියාට ඇස තැබීම</h1>
         <h2 style="color:var(--neon); margin: 0 0 20px 0; font-size: 1.8rem;">AI Edition</h2>
         
         <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
             <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
-            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම අත ගෙන ගොස් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>දබර ඇඟිල්ල සහ මහපට ඇඟිල්ල එකට ස්පර්ශ කරන්න (Pinch කරන්න)</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
+            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම අත ගෙන ගොස් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>දබර ඇඟිල්ල සහ මහපට ඇඟිල්ල එකට ස්පර්ශ කරගෙන මොහොතක් සිටින්න (Pinch කරගෙන සිටින්න)</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
         </div>
         
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
@@ -145,6 +145,10 @@
         let isDone = false;
         let gestureActive = false; 
 
+        // Duration tracking variables
+        let pinchStartTime = null;
+        const requiredPinchDuration = 600; // තත්පර 0.6ක් එක දිගට Pinch එක තියාගන්න ඕනේ
+
         function playChimeSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -184,7 +188,7 @@
             topMsg.innerText = "කැමරාව ක්‍රියාත්මක වෙමින් පවතී...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
                 hands.onResults(onResults);
 
                 const camera = new Camera(videoElement, {
@@ -203,7 +207,7 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරන්න (Pinch)!";
+            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරගෙන සිටින්න!";
 
             setTimeout(() => {
                 gestureActive = true;
@@ -236,12 +240,23 @@
                         Math.pow(thumbTip.z - indexTip.z, 2)
                     );
 
-                    if (distance < 0.045) {
-                        finalizeMark();
+                    // Tightened distance threshold to prevent false triggers
+                    if (distance < 0.038) {
+                        if (!pinchStartTime) {
+                            pinchStartTime = Date.now(); // Start timing
+                        } else {
+                            const elapsed = Date.now() - pinchStartTime;
+                            if (elapsed >= requiredPinchDuration) {
+                                finalizeMark();
+                            }
+                        }
+                    } else {
+                        pinchStartTime = null; // Reset timing if pinch is released or not detected
                     }
                 }
             } else {
                 eye.style.display = 'none';
+                pinchStartTime = null; // Reset timing if hand is lost
             }
         }
 
