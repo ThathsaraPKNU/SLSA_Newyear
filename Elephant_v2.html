@@ -120,7 +120,7 @@
         
         <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
             <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
-            දබර ඇඟිල්ලෙන් (Index finger) රතු තිත පාලනය කරමින් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>එම අතේම මහපට ඇඟිල්ල (Thumb) ඉහළට ඔසවා (Thumbs Up) මොහොතක් සිටින්න</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
+            දබර ඇඟිල්ලෙන් (Index finger) රතු තිත පාලනය කරමින් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>මහපට ඇඟිල්ල (Thumb) පසෙකට විහිදුවා (L-Shape එකක් සේ) මොහොතක් සිටින්න්න</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
         </div>
         
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
@@ -169,23 +169,23 @@
         let isDone = false;
         let gestureActive = false; 
         
-        let pinchStartTime = null;
-        const requiredPinchDuration = 300; 
+        let triggerStartTime = null;
+        const requiredHoldDuration = 400; // Gesture එක අල්ලාගෙන සිටිය යුතු කාලය (ms)
 
         function playChimeSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc1 = ctx.createOscillator();
-                const gain1 = ctx.createGain();
-                osc1.type = "triangle";
-                osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-                osc1.connect(gain1);
-                gain1.connect(ctx.destination);
-                osc1.start();
-                osc1.stop(ctx.currentTime + 0.4);
-            } catch (e) { console.log("Audio not supported"); }
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) { console.log("Audio Error"); }
         }
 
         window.startApp = function() {
@@ -220,7 +220,7 @@
             currentPhase = "play";
             target.style.display = 'none';
             topMsg.style.color = "var(--neon)";
-            topMsg.innerText = "දබර ඇඟිල්ලෙන් ඇස තබන්න. Mark කිරීමට මහපට ඇඟිල්ල ඔසවන්න! 👍";
+            topMsg.innerText = "රතු තිත පාලනය කර ඇස තබන්න. Mark කිරීමට මහපට ඇඟිල්ල පසෙකට විහිදුවන්න!";
             setTimeout(() => { gestureActive = true; }, 1500);
         }
 
@@ -231,12 +231,11 @@
                 eye.style.display = 'block';
                 const hand = results.multiHandLandmarks[0];
                 
-                const thumbTip = hand[4];  // Thumb tip
-                const thumbIp = hand[3];   // Thumb IP joint
-                const indexTip = hand[8];  // Index finger tip (Cursor)
-                const indexPip = hand[6];  // Index finger middle joint
+                const indexTip = hand[8];  // දබර ඇඟිල්ලේ අග (Cursor)
+                const indexMcp = hand[5];  // දබර ඇඟිල්ලේ මුල (Reference)
+                const thumbTip = hand[4];  // මහපට ඇඟිල්ලේ අග
 
-                // Screen coordinates calculation
+                // Mirror correction & scaling
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
 
@@ -247,26 +246,27 @@
                 lastY = y;
 
                 if (gestureActive) {
-                    // THUMB UP GESTURE LOGIC: 
-                    // මහපට ඇඟිල්ලේ අග, එහි මැද සන්ධියට සහ දබර ඇඟිල්ලේ සන්ධියට වඩා ඉහළින් තිබීම.
-                    const isThumbUp = thumbTip.y < thumbIp.y && thumbTip.y < indexPip.y;
-
-                    if (isThumbUp) {
-                        if (!pinchStartTime) {
-                            pinchStartTime = Date.now(); 
+                    // L-GESTURE LOGIC: මහපට ඇඟිල්ල සහ දබර ඇඟිල්ල අතර තිරස් පරතරය මැනීම
+                    // මෙය දකුණු හෝ වම් ඕනෑම අතකින් මහපට ඇඟිල්ල පැත්තට විහිදුවන විට ක්‍රියා කරයි.
+                    const horizontalDist = Math.abs(thumbTip.x - indexMcp.x);
+                    
+                    // 0.1 කියන්නේ අතේ පළලින් 10%ක් වැනි ප්‍රමාණයක්.
+                    if (horizontalDist > 0.1) {
+                        if (!triggerStartTime) {
+                            triggerStartTime = Date.now(); 
                         } else {
-                            const elapsed = Date.now() - pinchStartTime;
-                            if (elapsed >= requiredPinchDuration) {
+                            const elapsed = Date.now() - triggerStartTime;
+                            if (elapsed >= requiredHoldDuration) {
                                 finalizeMark();
                             }
                         }
                     } else {
-                        pinchStartTime = null; 
+                        triggerStartTime = null; 
                     }
                 }
             } else {
                 eye.style.display = 'none';
-                pinchStartTime = null; 
+                triggerStartTime = null; 
             }
         }
 
@@ -295,7 +295,7 @@
 
             if (score > 85) {
                 document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
-                topMsg.innerText = "🎉 සුපිරි! ඔබ නියමිත තැනම ඇස තැබුවා!";
+                topMsg.innerText = "🎉 නියමයි! ඔබ හරියටම ඇස තැබුවා!";
                 topMsg.style.color = "#39ff14";
             } else {
                 document.getElementById('status-txt').innerText = score > 60 ? "හොඳයි! 👍" : "තව උත්සාහ කරන්න 😅";
