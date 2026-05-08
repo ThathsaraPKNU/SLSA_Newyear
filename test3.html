@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Elephant Coordinate Finder</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
+        #container { position: relative; margin-top: 20px; border: 2px solid #333; line-height: 0; }
+        canvas { cursor: crosshair; max-width: 1000px; }
+        #output { width: 400px; height: 300px; margin-top: 20px; font-family: monospace; padding: 10px; }
+        .controls { margin-top: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <h2>Elephant Polygon Coordinate Finder</h2>
+    
+    <div class="controls">
+        <input type="file" id="imageLoader" accept="image/*">
+        <button onclick="clearPoints()">Clear All Points</button>
+        <p style="font-size: 12px; color: #666;">පිළිවෙලට අලියා වටා ක්ලික් කරන්න. (X, Y අගයන් පහත ලැබෙනු ඇත)</p>
+    </div>
+
+    <div id="container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <textarea id="output" readonly placeholder="Coordinates will appear here..."></textarea>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('output');
+        const imageLoader = document.getElementById('imageLoader');
+        let points = [];
+        let img = new Image();
+
+        imageLoader.addEventListener('change', handleImage, false);
+
+        function handleImage(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    clearPoints();
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            // Percentage calculation (ක්‍රීඩාවට අවශ්‍ය වන්නේ මෙයයි)
+            const xPct = ((x / canvas.width) * 100).toFixed(2);
+            const yPct = ((y / canvas.height) * 100).toFixed(2);
+
+            points.push({x: xPct, y: yPct});
+            draw();
+            updateOutput();
+        });
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'red';
+
+            if (points.length > 0) {
+                ctx.beginPath();
+                const startX = (points[0].x / 100) * canvas.width;
+                const startY = (points[0].y / 100) * canvas.height;
+                ctx.moveTo(startX, startY);
+
+                points.forEach(p => {
+                    const px = (p.x / 100) * canvas.width;
+                    const py = (p.y / 100) * canvas.height;
+                    ctx.lineTo(px, py);
+                    ctx.fillRect(px-3, py-3, 6, 6);
+                });
+                ctx.stroke();
+            }
+        }
+
+        function updateOutput() {
+            let str = "[\n";
+            points.forEach((p, i) => {
+                str += `  {x: ${p.x}, y: ${p.y}}${i === points.length - 1 ? '' : ','}\n`;
+            });
+            str += "]";
+            output.value = str;
+        }
+
+        function clearPoints() {
+            points = [];
+            ctx.drawImage(img, 0, 0);
+            output.value = "";
+        }
+    </script>
+</body>
+</html>
