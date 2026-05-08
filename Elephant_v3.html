@@ -140,7 +140,7 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // ඔබ ලබාදුන් අලුත්ම නිවැරදි ඛණ්ඩාංක (Coordinates)
+        // ඔබගේ නව coordinates
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -191,7 +191,10 @@
         function isInside(x, y) {
             let inside = false;
             for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
-                if (((elephantPolygon[i].y > y) != (elephantPolygon[j].y > y)) && (x < (elephantPolygon[j].x - elephantPolygon[i].x) * (y - elephantPolygon[i].y) / (elephantPolygon[j].y - elephantPolygon[i].y) + elephantPolygon[i].x)) inside = !inside;
+                let xi = elephantPolygon[i].x, yi = elephantPolygon[i].y;
+                let xj = elephantPolygon[j].x, yj = elephantPolygon[j].y;
+                let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
             }
             return inside;
         }
@@ -228,7 +231,6 @@
             const xPct = (finalX / area.offsetWidth) * 100;
             const yPct = (finalY / area.offsetHeight) * 100;
             
-            // Target (අලියාගේ ඇස) පිහිටීම
             const tx = target.offsetLeft; 
             const ty = target.offsetTop;
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
@@ -236,19 +238,21 @@
             let score = 0;
             let status = "";
 
-            // ඔබ ලබාදුන් Polygon එකට අනුව පමණක් ලකුණු ලබාදීම සිදු කරයි
-            if (isInside(xPct, yPct)) {
-                score = Math.max(0, 100 - (dist * 0.18)); 
+            // ඉතාම තදින් Boundary එක පරීක්ෂා කිරීම:
+            // 1. Point එක Polygon එක ඇතුළත විය යුතුමය.
+            // 2. ඇසෙන් පිටත ගොඩක් ඈතට ගියහොත් (උදා: වල්ගයේ වැදුණොත්) ලකුණු ලැබීම වැළැක්වීමට dist < 150 සීමාව දැම්මා.
+            if (isInside(xPct, yPct) && dist < 150) {
+                score = Math.max(0, 100 - (dist * 0.22)); 
                 if (dist < 8) score = 99.8; 
                 winSound.play();
-                
-                status = "ON THE BODY! 🐘";
-                if(score > 90) status = "EXCELLENT! 🏆";
-                else if(score > 60) status = "GREAT SHOT! 👍";
+                status = "ON THE TARGET AREA! 🐘";
             } else {
                 score = 0;
-                status = "OUTSIDE! 😅";
+                status = "MISSED! 😅";
             }
+
+            if(score > 90) status = "EXCELLENT! 🏆";
+            else if(score > 60) status = "GREAT SHOT! 👍";
 
             document.getElementById('status-txt').innerText = status;
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
