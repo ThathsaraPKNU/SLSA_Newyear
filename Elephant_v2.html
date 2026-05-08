@@ -9,42 +9,67 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     
     <style>
-        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; }
+        :root { 
+            --gold: #ffcc00; 
+            --neon: #39ff14; 
+            --dark: #050505; 
+            --red: #ff1111; 
+            --glass: rgba(255, 255, 255, 0.1);
+        }
         
         body { 
-            margin: 0; background: var(--dark); color: #fff; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: 100vh; overflow: hidden; padding: 10px 0; box-sizing: border-box;
+            min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
         }
 
+        /* Splash Screen with your original styling */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
         
-        .main-logo-big { width: 120px; height: 120px; margin-bottom: 20px; }
+        .main-logo-big { 
+            width: 130px; height: 130px; margin-bottom: 25px; 
+            filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3));
+        }
 
         .start-btn { 
-            padding: 20px 55px; background: var(--neon); color: #000; border: none; 
-            border-radius: 45px; font-weight: bold; font-size: 1.4rem; cursor: pointer; 
-            box-shadow: 0 0 25px var(--neon); transition: 0.3s; margin-bottom: 25px;
+            padding: 22px 60px; background: var(--neon); color: #000; border: none; 
+            border-radius: 50px; font-weight: 900; font-size: 1.5rem; cursor: pointer; 
+            box-shadow: 0 0 30px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .start-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 50px var(--neon); }
+
+        .dev-credit-box {
+            font-size: 1.3rem; color: var(--gold); font-weight: bold; letter-spacing: 1px;
+            border: 2px solid var(--gold); padding: 10px 30px; border-radius: 35px;
+            background: rgba(255, 204, 0, 0.1); backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
         }
 
-        .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 5px 0; }
+        .instruction { 
+            color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; 
+            margin: 10px 0; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
         
         #game-container {
-            position: relative; width: 80vw; max-width: 900px; height: 65vh; max-height: 600px;
+            position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
             background: #fff url('image_2.png') no-repeat center;
-            background-size: contain; border: 6px solid #444; border-radius: 20px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            background-size: contain; border: 8px solid #333; border-radius: 25px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.2);
+            overflow: hidden;
         }
 
-        /* ඔබ සොයාගත් නිවැරදිම Coordinates මෙහි ඇතුළත් කර ඇත */
+        /* පින්තූරයට අදාළ නිවැරදිම ඉලක්කය */
         #target {
             position: absolute;
-            width: 22px; height: 22px;
+            width: 20px; height: 20px;
             background: rgba(255, 204, 0, 0.2);
             border: 2px solid var(--gold);
             border-radius: 50%;
@@ -52,51 +77,68 @@
             left: 30.32%; 
             transform: translate(-50%, -50%); 
             display: none; z-index: 50;
+            box-shadow: 0 0 15px var(--gold);
         }
 
         #user-mark {
-            position: absolute; width: 45px; height: 45px;
+            position: absolute; width: 50px; height: 50px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
         }
 
         #eye-cursor {
-            position: absolute; width: 16px; height: 16px; 
+            position: absolute; width: 18px; height: 18px; 
             background-color: var(--red); border-radius: 50%;
             pointer-events: none; z-index: 100; display: none;
-            box-shadow: 0 0 10px 4px rgba(255, 17, 17, 0.7);
+            box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8);
             transform: translate(-50%, -50%);
         }
 
         #result-card {
             display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: rgba(0,0,0,0.96);
-            padding: 30px; border-radius: 20px; border: 3px solid var(--gold);
-            text-align: center; z-index: 200; width: 80%; max-width: 450px;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.98);
+            padding: 40px; border-radius: 30px; border: 4px solid var(--gold);
+            text-align: center; z-index: 200; width: 85%; max-width: 500px;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
         }
 
-        .score-val { font-size: 4.5rem; color: var(--gold); font-weight: 900; display: block; margin-bottom: 10px; }
+        .score-val { 
+            font-size: 5rem; color: var(--gold); font-weight: 900; 
+            display: block; margin: 15px 0; text-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+        }
         
         #res-btn { 
-            margin-top: 15px; padding: 14px 35px; background: var(--neon); color: #000; 
-            border: none; border-radius: 30px; font-weight: bold; cursor: pointer;
+            margin-top: 20px; padding: 16px 45px; background: var(--neon); color: #000; 
+            border: none; border-radius: 35px; font-weight: 900; cursor: pointer;
+            font-size: 1.2rem; text-transform: uppercase;
         }
 
-        .branding-section { width: 100%; text-align: center; padding-bottom: 10px; }
-        .dev-credit { color: #ffcc00; font-weight: bold; margin-top: 5px; font-size: 0.9rem; }
+        .branding-footer { 
+            width: 100%; display: flex; flex-direction: column; align-items: center; 
+            gap: 10px; padding-bottom: 10px;
+        }
+        
+        .footer-main { display: flex; align-items: center; gap: 20px; }
+        .bottom-logo { width: 70px; height: 70px; }
+        .footer-text h2 { color: var(--gold); margin: 0; font-size: 1.8rem; font-weight: 900; }
+        .footer-text p { color: #aaa; margin: 0; font-size: 1rem; letter-spacing: 1px; }
+
         #webcam { display: none; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img src="image_1.png" class="main-logo-big" alt="Logo">
-        <h1 style="color:var(--gold); font-size: 2.5rem; margin: 10px 0;">අලියාට ඇස තැබීම: AI Edition</h1>
-        <div style="color: #ddd; margin-bottom: 30px; padding: 0 20px; font-size: 1.1rem; line-height: 1.6;">
-            දබර ඇඟිල්ලෙන් ඇස තැබිය යුතු ස්ථානය තෝරාගෙන,<br>
-            එය තහවුරු කිරීමට <b>මහපට ඇඟිල්ල පසෙකට විහිදුවන්න (L-Gesture)</b>.
-        </div>
+        <img src="image_1.png" class="main-logo-big" alt="SLSA Logo">
+        <div style="font-size: 1.2rem; color: #888; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
+        <div style="font-size: 1.5rem; color: #fff; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
+        
+        <h1 style="color:var(--gold); font-size: 3.5rem; margin: 10px 0; font-weight: 900; text-shadow: 0 0 20px rgba(255, 204, 0, 0.3);">අලියාට ඇස තැබීම</h1>
+        <h2 style="color:var(--neon); margin: 0 0 30px 0; font-size: 2rem;">AI EDITION</h2>
+        
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
+        <div class="dev-credit-box">Developed by Thathsara Nanayakkara</div>
     </div>
 
     <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
@@ -107,17 +149,25 @@
         <div id="eye-cursor"></div>
         
         <div id="result-card">
-            <h2 id="status-txt" style="color:#fff; margin:0;">ලකුණු මට්ටම</h2>
+            <h2 id="status-txt" style="color:#fff; font-size: 2rem; margin: 0;">SCORE</h2>
             <span class="score-val" id="score-pct">0%</span>
-            <p id="dist-txt" style="color:#ccc; margin-bottom: 20px;"></p>
-            <button id="res-btn" onclick="location.reload()">නැවත සෙල්ලම් කරන්න 🔄</button>
+            <p id="dist-txt" style="color:#888; font-size: 1.1rem;"></p>
+            <button id="res-btn" onclick="location.reload()">RETRY 🔄</button>
         </div>
         <video id="webcam" playsinline></video>
     </div>
 
-    <div class="branding-section">
-        <div style="font-size: 1.2rem; color: var(--gold); font-weight: bold;">SLSA - Korea</div>
-        <div class="dev-credit">Developed by Indunil Samayamanthtree</div>
+    <div class="branding-footer">
+        <div class="footer-main">
+            <img src="image_1.png" class="bottom-logo">
+            <div class="footer-text">
+                <h2>අලියාට ඇස තැබීම: AI Edition</h2>
+                <p>SLSA - SOUTH KOREA</p>
+            </div>
+        </div>
+        <div style="color: var(--gold); font-weight: bold; border-top: 1px solid #333; padding-top: 10px; width: 300px; text-align: center;">
+            Developed by Thathsara Nanayakkara
+        </div>
     </div>
 
     <script type="module">
@@ -129,8 +179,6 @@
         const resultCard = document.getElementById('result-card');
         const videoElement = document.getElementById('webcam');
 
-        let currentPhase = "loading"; 
-        let lastX = 0, lastY = 0;
         let isDone = false;
         let gestureActive = false; 
         let triggerStartTime = null;
@@ -141,7 +189,7 @@
         }
 
         async function initAI() {
-            topMsg.innerText = "කැමරාව සක්‍රීය වෙමින් පවතී...";
+            topMsg.innerText = "Initializing AI Camera...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
                 hands.setOptions({ 
@@ -157,65 +205,64 @@
                     width: 640, height: 480
                 });
                 await camera.start();
-                currentPhase = "play";
-                topMsg.innerText = "ඇස තැබීමට දබර ඇඟිල්ල දිගු කර මහපට ඇඟිල්ල පසෙකට විහිදුවන්න!";
+                topMsg.innerText = "දබර ඇඟිල්ලෙන් ඉලක්කය ගෙන මහපට ඇඟිල්ල පසෙකට විහිදුවන්න!";
                 setTimeout(() => { gestureActive = true; }, 1000);
             } catch(e) {
-                topMsg.innerText = "Error: කැමරාව ක්‍රියාත්මක කළ නොහැක.";
+                topMsg.innerText = "කැමරා දෝෂයකි!";
             }
         }
 
         function onResults(results) {
-            if (currentPhase !== "play" || isDone) return;
+            if (isDone) return;
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 eye.style.display = 'block';
                 const hand = results.multiHandLandmarks[0];
+                
                 const indexTip = hand[8];  
                 const indexMcp = hand[5];  
                 const thumbTip = hand[4];  
 
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
+
                 eye.style.left = `${x}px`;
                 eye.style.top = `${y}px`;
-                lastX = x; lastY = y;
 
                 if (gestureActive) {
-                    // L-Gesture logic
                     const horizontalDist = Math.abs(thumbTip.x - indexMcp.x);
                     if (horizontalDist > 0.12) { 
                         if (!triggerStartTime) triggerStartTime = Date.now();
-                        else if (Date.now() - triggerStartTime > 400) finalizeMark();
+                        else if (Date.now() - triggerStartTime > 400) finalizeMark(x, y);
                     } else { triggerStartTime = null; }
                 }
-            } else { eye.style.display = 'none'; triggerStartTime = null; }
+            } else { eye.style.display = 'none'; }
         }
 
-        function finalizeMark() {
-            if (isDone) return;
+        function finalizeMark(finalX, finalY) {
             isDone = true;
             target.style.display = 'block';
-            userMark.style.left = `${lastX}px`;
-            userMark.style.top = `${lastY}px`;
+            userMark.style.left = `${finalX}px`;
+            userMark.style.top = `${finalY}px`;
             userMark.style.display = 'block';
+            eye.style.display = 'none';
 
             const tx = target.offsetLeft;
             const ty = target.offsetTop;
-            const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
+            const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
-            // Score Logic (Adjusted for high precision)
-            let score = Math.max(0, 100 - (dist / 2.0));
-            if (dist < 8) score = 99.9; // ඉතාමත් ආසන්න නම්
+            let score = Math.max(0, 100 - (dist / 1.8));
+            if (dist < 8) score = 99.8; 
 
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
-            document.getElementById('dist-txt').innerText = score > 90 ? "නියමයි! ඔබ හරියටම ඇස තැබුවා." : `පික්සල් ${dist.toFixed(0)} ක පරතරයක් ඇත.`;
+            document.getElementById('dist-txt').innerText = `Distance: ${dist.toFixed(0)}px`;
             
-            if(score > 90) document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
-            else if(score > 60) document.getElementById('status-txt').innerText = "හොඳයි! 👍";
-            else document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
+            if(score > 90) document.getElementById('status-txt').innerText = "EXCELLENT! 🏆";
+            else if(score > 60) document.getElementById('status-txt').innerText = "GOOD JOB! 👍";
+            else document.getElementById('status-txt').innerText = "TRY AGAIN! 😅";
 
             resultCard.style.display = 'block';
-            topMsg.innerText = "ක්‍රීඩාව අවසන්!";
+            topMsg.innerText = "GAME OVER";
+            topMsg.style.color = "var(--gold)";
         }
     </script>
 </body>
