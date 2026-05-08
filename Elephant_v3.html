@@ -140,7 +140,7 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // ඔබගේ නව coordinates
+        // ඔබ ලබාදුන් සම්පූර්ණ coordinates
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -238,21 +238,22 @@
             let score = 0;
             let status = "";
 
-            // ඉතාම තදින් Boundary එක පරීක්ෂා කිරීම:
-            // 1. Point එක Polygon එක ඇතුළත විය යුතුමය.
-            // 2. ඇසෙන් පිටත ගොඩක් ඈතට ගියහොත් (උදා: වල්ගයේ වැදුණොත්) ලකුණු ලැබීම වැළැක්වීමට dist < 150 සීමාව දැම්මා.
-            if (isInside(xPct, yPct) && dist < 150) {
-                score = Math.max(0, 100 - (dist * 0.22)); 
+            // Polygon එක ඇතුළත ඕනෑම තැනක් ලකුණු ලබාදීම සඳහා වලංගු වේ
+            if (isInside(xPct, yPct)) {
+                // දුර අනුව ලකුණු ගණනය වේ (0-100 අතර)
+                score = Math.max(0, 100 - (dist * 0.18)); 
                 if (dist < 8) score = 99.8; 
                 winSound.play();
-                status = "ON THE TARGET AREA! 🐘";
+                status = "ON THE BODY! 🐘";
             } else {
+                // Polygon එකෙන් පිටත ඕනෑම තැනක වැදුණහොත් ලකුණු 0 වේ
                 score = 0;
-                status = "MISSED! 😅";
+                status = "OUTSIDE THE BODY! 😅";
             }
 
             if(score > 90) status = "EXCELLENT! 🏆";
             else if(score > 60) status = "GREAT SHOT! 👍";
+            else if(score > 0) status = "ON THE BODY! 🐘";
 
             document.getElementById('status-txt').innerText = status;
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
