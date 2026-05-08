@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline'; font-src * data:;">
+    <title>අලියාට ඇස තැබීම: AI Edition - SLSA - Korea</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    
+    <style>
+        :root { --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; }
+        
+        body { 
+            margin: 0; background: var(--dark); color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            min-height: 100vh; overflow: hidden; padding: 10px 0; box-sizing: border-box;
+        }
+
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark); z-index: 1000; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+        
+        .main-logo-big {
+            width: 120px; height: 120px; margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+        }
+
+        .start-btn { 
+            padding: 20px 55px; background: var(--neon); color: #000; border: none; 
+            border-radius: 45px; font-weight: bold; font-size: 1.4rem; cursor: pointer; 
+            box-shadow: 0 0 25px var(--neon); transition: 0.3s; margin-bottom: 25px;
+        }
+        .start-btn:hover { transform: scale(1.05); }
+
+        .dev-credit {
+            font-size: 1.4rem; color: #ffcc00; font-weight: bold; letter-spacing: 1px;
+            border: 2px solid #ffcc00; padding: 8px 25px; border-radius: 30px;
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; min-height: 1.5em; margin: 5px 0; }
+        
+        #game-container {
+            position: relative; width: 75vw; max-width: 850px; height: 60vh; max-height: 550px;
+            background: #fff url('image_2.png') no-repeat center;
+            background-size: contain; border: 6px solid #444; border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); overflow: hidden;
+        }
+
+        #target {
+            position: absolute; width: 32px; height: 32px;
+            background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
+            border-radius: 50%; top: 32.5%; left: 71.3%; 
+            transform: translate(-50%, -50%); display: none; z-index: 50;
+        }
+
+        #user-mark {
+            position: absolute; width: 45px; height: 45px;
+            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
+            background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
+        }
+
+        #eye-cursor {
+            position: absolute; width: 15px; height: 15px; 
+            background-color: var(--red); border-radius: 50%;
+            pointer-events: none; z-index: 100; display: none;
+            box-shadow: 0 0 10px 4px rgba(255, 17, 17, 0.7);
+            transform: translate(-50%, -50%);
+        }
+
+        #result-card {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.96);
+            padding: 30px; border-radius: 20px; border: 3px solid var(--gold);
+            text-align: center; z-index: 200; width: 75%; max-width: 500px; box-sizing: border-box;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .score-val { font-size: 4rem; color: var(--gold); font-weight: 900; display: block; margin: 12px 0; }
+        
+        #res-btn { 
+            margin-top: 15px; padding: 14px 35px; background: var(--neon); color: #000; 
+            border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
+        }
+
+        .branding-section { 
+            width: 100%; text-align: center; padding-bottom: 5px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        
+        .bottom-logo {
+            width: 60px; height: 60px; margin-right: 18px;
+            filter: brightness(0.9) contrast(1.1);
+        }
+
+        .bottom-dev-credit {
+            font-size: 1rem; color: #ffcc00; font-weight: bold; letter-spacing: 1px;
+            margin-top: 8px; border-top: 1px solid rgba(255, 204, 0, 0.3); padding-top: 5px;
+            width: 100%; max-width: 400px;
+        }
+
+        #webcam { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img src="image_1.png" alt="SLSA Korea Logo" class="main-logo-big">
+        
+        <div style="font-size: 1.2rem; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
+        <div style="font-size: 1.4rem; color: #fff; font-weight: bold; margin-bottom: 15px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව (SLSA - Korea)</div>
+        
+        <h1 style="color:var(--gold); margin: 5px 0; font-size: 2.8rem;">අලියාට ඇස තැබීම</h1>
+        <h2 style="color:var(--neon); margin: 0 0 20px 0; font-size: 1.8rem;">AI Edition</h2>
+        
+        <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
+            <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
+            ක්‍රීඩකයාගේ ඇස් රෙදි කඩකින් බඳිනු ලැබේ. ඉන්පසු ක්‍රීඩකයා කැමරාව ඉදිරියේ තම අත ගෙන ගොස් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>දබර ඇඟිල්ල සහ මහපට ඇඟිල්ල එකට ස්පර්ශ කරගෙන මොහොතක් සිටින්න (Pinch කරගෙන සිටින්න)</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
+        </div>
+        
+        <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
+        <div class="dev-credit">Developed by Thathsara Nanayakkara</div>
+    </div>
+
+    <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
+
+    <div id="game-container">
+        <div id="target"></div>
+        <div id="user-mark"></div>
+        <div id="eye-cursor"></div>
+        
+        <div id="result-card">
+            <h2 id="status-txt" style="margin:0; color:#fff; font-size: 1.8rem;">ලකුණු මට්ටම</h2>
+            <span class="score-val" id="score-pct">0%</span>
+            <p id="dist-txt" style="color:#ccc; font-size: 1.1rem;"></p>
+            <button id="res-btn" onclick="location.reload()">නැවත සෙල්ලම් කරන්න 🔄</button>
+        </div>
+        
+        <video id="webcam" playsinline></video>
+    </div>
+
+    <div class="branding-section">
+        <div style="display: flex; align-items: center; justify-content: center;">
+            <img src="image_1.png" alt="SLSA Korea Logo" class="bottom-logo">
+            <div style="text-align: left;">
+                <div style="font-size: 1.6rem; color: var(--gold); font-weight: 900;">අලියාට ඇස තැබීම: AI Edition</div>
+                <div style="color: #bbb; letter-spacing: 1.2px; font-size: 1rem; margin-top: 2px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව (SLSA - Korea)</div>
+            </div>
+        </div>
+        <div class="bottom-dev-credit">Developed by Thathsara Nanayakkara</div>
+    </div>
+
+    <script type="module">
+        const eye = document.getElementById('eye-cursor');
+        const target = document.getElementById('target');
+        const userMark = document.getElementById('user-mark');
+        const topMsg = document.getElementById('top-msg');
+        const area = document.getElementById('game-container');
+        const resultCard = document.getElementById('result-card');
+        const videoElement = document.getElementById('webcam');
+
+        let currentPhase = "loading"; 
+        let lastX = 0, lastY = 0;
+        let isDone = false;
+        let gestureActive = false; 
+        
+        let pinchStartTime = null;
+        const requiredPinchDuration = 300; // කලින් 600ms තිබුණු එක 300ms (තත්පර 0.3) දක්වා අඩු කළා
+
+        function playChimeSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = "triangle";
+                osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start();
+                osc1.stop(ctx.currentTime + 0.4);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = "triangle";
+                osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+                gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.55);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(ctx.currentTime + 0.15);
+                osc2.stop(ctx.currentTime + 0.55);
+            } catch (e) {
+                console.log("Audio not supported");
+            }
+        }
+
+        window.startApp = function() {
+            document.getElementById('splash-screen').style.display = 'none';
+            initAI();
+        }
+
+        async function initAI() {
+            topMsg.innerText = "කැමරාව ක්‍රියාත්මක වෙමින් පවතී...";
+            try {
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({ 
+                    maxNumHands: 1, 
+                    modelComplexity: 1, 
+                    minDetectionConfidence: 0.6, 
+                    minTrackingConfidence: 0.6 
+                });
+                hands.onResults(onResults);
+
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => { await hands.send({image: videoElement}); },
+                    width: 640, height: 480
+                });
+                await camera.start();
+                
+                startPlayPhase();
+            } catch (err) {
+                topMsg.innerText = "කැමරාව ක්‍රියාත්මක කිරීමට නොහැකි විය.";
+            }
+        }
+
+        function startPlayPhase() {
+            currentPhase = "play";
+            target.style.display = 'none';
+            topMsg.style.color = "var(--neon)";
+            topMsg.innerText = "රතු තිත බලමින් ඇස තබන්න. Mark කිරීමට ඇඟිලි දෙක එකතු කරගෙන සිටින්න්න!";
+
+            setTimeout(() => {
+                gestureActive = true;
+            }, 1500);
+        }
+
+        function onResults(results) {
+            if (currentPhase !== "play" || isDone) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                eye.style.display = 'block';
+                const hand = results.multiHandLandmarks[0];
+                
+                const thumbTip = hand[4];
+                const indexTip = hand[8]; 
+                
+                const x = (1 - indexTip.x) * area.offsetWidth;
+                const y = indexTip.y * area.offsetHeight;
+
+                eye.style.left = `${x}px`;
+                eye.style.top = `${y}px`;
+
+                lastX = x;
+                lastY = y;
+
+                if (gestureActive) {
+                    const distance = Math.sqrt(
+                        Math.pow(thumbTip.x - indexTip.x, 2) + 
+                        Math.pow(thumbTip.y - indexTip.y, 2) +
+                        Math.pow(thumbTip.z - indexTip.z, 2)
+                    );
+
+                    // Adjusted from 0.038 to 0.042 for better sensitivity
+                    if (distance < 0.042) {
+                        if (!pinchStartTime) {
+                            pinchStartTime = Date.now(); 
+                        } else {
+                            const elapsed = Date.now() - pinchStartTime;
+                            if (elapsed >= requiredPinchDuration) {
+                                finalizeMark();
+                            }
+                        }
+                    } else {
+                        pinchStartTime = null; 
+                    }
+                }
+            } else {
+                eye.style.display = 'none';
+                pinchStartTime = null; 
+            }
+        }
+
+        function finalizeMark() {
+            if (isDone) return;
+            isDone = true;
+
+            currentPhase = "result";
+            eye.style.display = 'none';
+            
+            if(lastX === 0 && lastY === 0) {
+                lastX = area.offsetWidth / 2;
+                lastY = area.offsetHeight / 2;
+            }
+
+            target.style.display = 'block';
+            userMark.style.left = `${lastX}px`;
+            userMark.style.top = `${lastY}px`;
+            userMark.style.display = 'block';
+
+            playChimeSound();
+
+            const tx = target.offsetLeft;
+            const ty = target.offsetTop;
+            const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
+            
+            let score = Math.max(0, 100 - (dist / 2.5));
+            if (dist < 12) score = 100;
+
+            document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
+            document.getElementById('dist-txt').innerText = `ඔබ නියමිත ස්ථානයට පික්සල් ${dist.toFixed(0)} ක් ආසන්නයි!`;
+
+            if (score > 85) {
+                document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
+                topMsg.innerText = "🎉 සුපිරි! ඔබ නිවැරදිව ඇස තැබුවා!";
+                topMsg.style.color = "#39ff14";
+            } else if (score > 60) {
+                document.getElementById('status-txt').innerText = "හොඳයි! 👍";
+                topMsg.innerText = "හොඳ උත්සාහයක්!";
+            } else {
+                document.getElementById('status-txt').innerText = "තව උත්සාහ කරන්න 😅";
+                topMsg.innerText = "ලකුණු මදි වගේ!";
+            }
+
+            resultCard.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
