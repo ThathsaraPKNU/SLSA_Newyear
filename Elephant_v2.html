@@ -52,11 +52,21 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.9); overflow: hidden;
         }
 
+        /* ඔබගේ අලුත් අලියාගේ රූපයට අදාළ Target Point එක */
         #target {
-            position: absolute; width: 32px; height: 32px;
-            background: rgba(255, 204, 0, 0.6); border: 3px solid var(--gold);
-            border-radius: 50%; top: 32.5%; left: 71.3%; 
-            transform: translate(-50%, -50%); display: none; z-index: 50;
+            position: absolute;
+            width: 25px; 
+            height: 25px;
+            background: rgba(255, 204, 0, 0.3);
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            /* ඇසට ගැලපෙන පිහිටීම (දළ වශයෙන්) */
+            top: 25%;  
+            left: 23%; 
+            transform: translate(-50%, -50%); 
+            display: none; 
+            z-index: 50;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
         }
 
         #user-mark {
@@ -120,7 +130,7 @@
         
         <div style="padding: 0 40px; color: #ddd; max-width: 750px; line-height: 1.7; font-size: 1.15rem; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #333;">
             <b style="color: var(--gold); font-size: 1.3rem;">ක්‍රීඩා කරන ආකාරය:</b><br>
-            දබර ඇඟිල්ලෙන් (Index finger) රතු තිත පාලනය කරමින් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>මහපට ඇඟිල්ල (Thumb) පසෙකට විහිදුවා (L-Shape එකක් සේ) මොහොතක් සිටින්න්න</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
+            දබර ඇඟිල්ලෙන් (Index finger) රතු තිත පාලනය කරමින් අලියාගේ ඇස තැබිය යුතු ස්ථානය තෝරාගන්න. ඔබ නිවැරදි ස්ථානයට පැමිණි පසු <b>එම අතේම මහපට ඇඟිල්ල (Thumb) පසෙකට විහිදුවා (L-Shape එකක් සේ) මොහොතක් සිටින්න</b>. එවිට ඔබ අත තැබූ ස්ථානය සලකුණු වේ.
         </div>
         
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
@@ -170,7 +180,7 @@
         let gestureActive = false; 
         
         let triggerStartTime = null;
-        const requiredHoldDuration = 400; // Gesture එක අල්ලාගෙන සිටිය යුතු කාලය (ms)
+        const requiredHoldDuration = 400; 
 
         function playChimeSound() {
             try {
@@ -231,11 +241,10 @@
                 eye.style.display = 'block';
                 const hand = results.multiHandLandmarks[0];
                 
-                const indexTip = hand[8];  // දබර ඇඟිල්ලේ අග (Cursor)
-                const indexMcp = hand[5];  // දබර ඇඟිල්ලේ මුල (Reference)
+                const indexTip = hand[8];  // දබර ඇඟිල්ලේ අග
+                const indexMcp = hand[5];  // දබර ඇඟිල්ලේ මුල
                 const thumbTip = hand[4];  // මහපට ඇඟිල්ලේ අග
 
-                // Mirror correction & scaling
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
 
@@ -247,11 +256,9 @@
 
                 if (gestureActive) {
                     // L-GESTURE LOGIC: මහපට ඇඟිල්ල සහ දබර ඇඟිල්ල අතර තිරස් පරතරය මැනීම
-                    // මෙය දකුණු හෝ වම් ඕනෑම අතකින් මහපට ඇඟිල්ල පැත්තට විහිදුවන විට ක්‍රියා කරයි.
                     const horizontalDist = Math.abs(thumbTip.x - indexMcp.x);
                     
-                    // 0.1 කියන්නේ අතේ පළලින් 10%ක් වැනි ප්‍රමාණයක්.
-                    if (horizontalDist > 0.1) {
+                    if (horizontalDist > 0.12) { // 0.12 අගය අත් වල විශාලත්වය අනුව මඳක් වෙනස් කළ හැක
                         if (!triggerStartTime) {
                             triggerStartTime = Date.now(); 
                         } else {
@@ -287,15 +294,16 @@
             const ty = target.offsetTop;
             const dist = Math.sqrt(Math.pow(lastX - tx, 2) + Math.pow(lastY - ty, 2));
             
+            // ලකුණු ගණනය කිරීම
             let score = Math.max(0, 100 - (dist / 2.5));
-            if (dist < 12) score = 100;
+            if (dist < 12) score = 99.5; // ඔබ ඉල්ලූ පරිදි 99% ට වඩා වැඩි අගයක්
 
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
             document.getElementById('dist-txt').innerText = `ඔබ නියමිත ස්ථානයට පික්සල් ${dist.toFixed(0)} ක් ආසන්නයි!`;
 
             if (score > 85) {
                 document.getElementById('status-txt').innerText = "විශිෂ්ටයි! 🏆";
-                topMsg.innerText = "🎉 නියමයි! ඔබ හරියටම ඇස තැබුවා!";
+                topMsg.innerText = "🎉 නියමයි! ඔබ ඉතාමත් නිවැරදිව ඇස තැබුවා!";
                 topMsg.style.color = "#39ff14";
             } else {
                 document.getElementById('status-txt').innerText = score > 60 ? "හොඳයි! 👍" : "තව උත්සාහ කරන්න 😅";
