@@ -14,85 +14,62 @@
             --neon: #39ff14; 
             --dark: #050505; 
             --red: #ff1111; 
-            --glass: rgba(255, 255, 255, 0.1);
         }
         
         body { 
             margin: 0; 
             background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
             color: #fff; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
             min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
         }
 
-        /* Splash Screen with your original styling */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
         
-        .main-logo-big { 
-            width: 130px; height: 130px; margin-bottom: 25px; 
-            filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3));
-        }
+        .main-logo-big { width: 130px; height: 130px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3)); }
 
         .start-btn { 
             padding: 22px 60px; background: var(--neon); color: #000; border: none; 
             border-radius: 50px; font-weight: 900; font-size: 1.5rem; cursor: pointer; 
-            box-shadow: 0 0 30px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 30px var(--neon); transition: 0.4s; margin-bottom: 30px;
         }
-        .start-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 50px var(--neon); }
 
         .dev-credit-box {
-            font-size: 1.3rem; color: var(--gold); font-weight: bold; letter-spacing: 1px;
+            font-size: 1.3rem; color: var(--gold); font-weight: bold;
             border: 2px solid var(--gold); padding: 10px 30px; border-radius: 35px;
-            background: rgba(255, 204, 0, 0.1); backdrop-filter: blur(5px);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+            background: rgba(255, 204, 0, 0.1);
         }
 
-        .instruction { 
-            color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; 
-            margin: 10px 0; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
-        }
+        .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 10px 0; }
         
         #game-container {
             position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
             background: #fff url('image_2.png') no-repeat center;
             background-size: contain; border: 8px solid #333; border-radius: 25px;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.2);
-            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9); overflow: hidden;
         }
 
-        /* පින්තූරයට අදාළ නිවැරදිම ඉලක්කය */
         #target {
-            position: absolute;
-            width: 20px; height: 20px;
-            background: rgba(255, 204, 0, 0.2);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            top: 29.81%;  
-            left: 30.32%; 
-            transform: translate(-50%, -50%); 
-            display: none; z-index: 50;
-            box-shadow: 0 0 15px var(--gold);
+            position: absolute; width: 20px; height: 20px; background: rgba(255, 204, 0, 0.2);
+            border: 2px solid var(--gold); border-radius: 50%; top: 29.81%; left: 30.32%; 
+            transform: translate(-50%, -50%); display: none; z-index: 50;
         }
 
         #user-mark {
             position: absolute; width: 50px; height: 50px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
         }
 
         #eye-cursor {
-            position: absolute; width: 18px; height: 18px; 
-            background-color: var(--red); border-radius: 50%;
-            pointer-events: none; z-index: 100; display: none;
-            box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8);
-            transform: translate(-50%, -50%);
+            position: absolute; width: 18px; height: 18px; background-color: var(--red);
+            border-radius: 50%; pointer-events: none; z-index: 100; display: none;
+            box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
         }
 
         #result-card {
@@ -100,45 +77,27 @@
             transform: translate(-50%, -50%); background: rgba(0,0,0,0.98);
             padding: 40px; border-radius: 30px; border: 4px solid var(--gold);
             text-align: center; z-index: 200; width: 85%; max-width: 500px;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
         }
 
-        .score-val { 
-            font-size: 5rem; color: var(--gold); font-weight: 900; 
-            display: block; margin: 15px 0; text-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
-        }
-        
-        #res-btn { 
-            margin-top: 20px; padding: 16px 45px; background: var(--neon); color: #000; 
-            border: none; border-radius: 35px; font-weight: 900; cursor: pointer;
-            font-size: 1.2rem; text-transform: uppercase;
-        }
+        .score-val { font-size: 5rem; color: var(--gold); font-weight: 900; display: block; margin: 15px 0; }
+        #res-btn { margin-top: 20px; padding: 16px 45px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; }
 
-        .branding-footer { 
-            width: 100%; display: flex; flex-direction: column; align-items: center; 
-            gap: 10px; padding-bottom: 10px;
-        }
-        
+        .branding-footer { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 10px; }
         .footer-main { display: flex; align-items: center; gap: 20px; }
         .bottom-logo { width: 70px; height: 70px; }
         .footer-text h2 { color: var(--gold); margin: 0; font-size: 1.8rem; font-weight: 900; }
-        .footer-text p { color: #aaa; margin: 0; font-size: 1rem; letter-spacing: 1px; }
-
         #webcam { display: none; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img src="image_1.png" class="main-logo-big" alt="SLSA Logo">
-        <div style="font-size: 1.2rem; color: #888; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px;">අලුත් අවුරුදු උත්සවය</div>
-        <div style="font-size: 1.5rem; color: #fff; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
-        
-        <h1 style="color:var(--gold); font-size: 3.5rem; margin: 10px 0; font-weight: 900; text-shadow: 0 0 20px rgba(255, 204, 0, 0.3);">අලියාට ඇස තැබීම</h1>
+        <img src="image_1.png" class="main-logo-big">
+        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
+        <h1 style="color:var(--gold); font-size: 3.5rem; margin: 10px 0; font-weight: 900;">අලියාට ඇස තැබීම</h1>
         <h2 style="color:var(--neon); margin: 0 0 30px 0; font-size: 2rem;">AI EDITION</h2>
-        
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
-        <div class="dev-credit-box">Developed by Thathsara Nanayakkara</div>
+        <div class="dev-credit-box">Developed by Indunil Samayamanthtree</div>
     </div>
 
     <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
@@ -147,7 +106,6 @@
         <div id="target"></div>
         <div id="user-mark"></div>
         <div id="eye-cursor"></div>
-        
         <div id="result-card">
             <h2 id="status-txt" style="color:#fff; font-size: 2rem; margin: 0;">SCORE</h2>
             <span class="score-val" id="score-pct">0%</span>
@@ -166,7 +124,7 @@
             </div>
         </div>
         <div style="color: var(--gold); font-weight: bold; border-top: 1px solid #333; padding-top: 10px; width: 300px; text-align: center;">
-            Developed by Thathsara Nanayakkara
+            Developed by Indunil Samayamanthtree
         </div>
     </div>
 
@@ -178,6 +136,14 @@
         const area = document.getElementById('game-container');
         const resultCard = document.getElementById('result-card');
         const videoElement = document.getElementById('webcam');
+
+        // ඔබ ලබාදුන් අලියාගේ ඇඟේ Outline ලකුණු
+        const elephantPolygon = [
+            {x: 20.45, y: 8.18}, {x: 39.83, y: 8.74}, {x: 69.33, y: 9.3},
+            {x: 84.08, y: 25.25}, {x: 86.45, y: 44.01}, {x: 89.58, y: 89.79},
+            {x: 66.08, y: 91.48}, {x: 50.95, y: 92.42}, {x: 25.45, y: 92.04},
+            {x: 12.45, y: 89.04}, {x: 14.45, y: 39.13}, {x: 14.58, y: 27.5}
+        ];
 
         let isDone = false;
         let gestureActive = false; 
@@ -192,24 +158,25 @@
             topMsg.innerText = "Initializing AI Camera...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ 
-                    maxNumHands: 1, 
-                    modelComplexity: 1, 
-                    minDetectionConfidence: 0.75, 
-                    minTrackingConfidence: 0.75 
-                });
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
                 hands.onResults(onResults);
-
-                const camera = new Camera(videoElement, {
-                    onFrame: async () => { await hands.send({image: videoElement}); },
-                    width: 640, height: 480
-                });
+                const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
                 await camera.start();
-                topMsg.innerText = "දබර ඇඟිල්ලෙන් ඉලක්කය ගෙන මහපට ඇඟිල්ල පසෙකට විහිදුවන්න!";
+                topMsg.innerText = "ඇස තැබීමට මහපට ඇඟිල්ල පසෙකට විහිදුවන්න!";
                 setTimeout(() => { gestureActive = true; }, 1000);
-            } catch(e) {
-                topMsg.innerText = "කැමරා දෝෂයකි!";
+            } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
+        }
+
+        // ලකුණු කරන තැන අලියාගේ ඇඟ ඇතුළේදැයි බලන Algorithm එක
+        function isInside(xPct, yPct) {
+            let inside = false;
+            for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
+                let xi = elephantPolygon[i].x, yi = elephantPolygon[i].y;
+                let xj = elephantPolygon[j].x, yj = elephantPolygon[j].y;
+                let intersect = ((yi > yPct) != (yj > yPct)) && (xPct < (xj - xi) * (yPct - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
             }
+            return inside;
         }
 
         function onResults(results) {
@@ -217,16 +184,10 @@
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 eye.style.display = 'block';
                 const hand = results.multiHandLandmarks[0];
-                
-                const indexTip = hand[8];  
-                const indexMcp = hand[5];  
-                const thumbTip = hand[4];  
-
+                const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
-
-                eye.style.left = `${x}px`;
-                eye.style.top = `${y}px`;
+                eye.style.left = `${x}px`; eye.style.top = `${y}px`;
 
                 if (gestureActive) {
                     const horizontalDist = Math.abs(thumbTip.x - indexMcp.x);
@@ -246,23 +207,33 @@
             userMark.style.display = 'block';
             eye.style.display = 'none';
 
+            // Coordinates percentages වලට හැරවීම (Polygon එක සමඟ සැසඳීමට)
+            const xPct = (finalX / area.offsetWidth) * 100;
+            const yPct = (finalY / area.offsetHeight) * 100;
+
+            const onBody = isInside(xPct, yPct);
+            
             const tx = target.offsetLeft;
             const ty = target.offsetTop;
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
-            let score = Math.max(0, 100 - (dist / 1.8));
-            if (dist < 8) score = 99.8; 
+            let score = 0;
+            if (onBody) {
+                score = Math.max(10, 100 - (dist / 1.8)); // ඇඟේ වැදුනොත් අවම ලකුණු 10 ක් ලැබේ
+                if (dist < 10) score = 100;
+            } else {
+                score = 0; // ඇඟෙන් පිටත නම් 0 යි
+            }
 
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
-            document.getElementById('dist-txt').innerText = `Distance: ${dist.toFixed(0)}px`;
+            document.getElementById('dist-txt').innerText = onBody ? `Target Distance: ${dist.toFixed(0)}px` : "අලියාට පිටතින් ලකුණු කර ඇත!";
             
             if(score > 90) document.getElementById('status-txt').innerText = "EXCELLENT! 🏆";
-            else if(score > 60) document.getElementById('status-txt').innerText = "GOOD JOB! 👍";
-            else document.getElementById('status-txt').innerText = "TRY AGAIN! 😅";
+            else if(score > 10) document.getElementById('status-txt').innerText = "ON THE BODY! 👍";
+            else document.getElementById('status-txt').innerText = "MISSED! 😅";
 
             resultCard.style.display = 'block';
             topMsg.innerText = "GAME OVER";
-            topMsg.style.color = "var(--gold)";
         }
     </script>
 </body>
