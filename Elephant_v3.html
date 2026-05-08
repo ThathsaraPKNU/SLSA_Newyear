@@ -21,7 +21,6 @@
             min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
         }
 
-        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
@@ -46,7 +45,6 @@
 
         .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 10px 0; }
         
-        /* Game Container */
         #game-container {
             position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
             background: #fff url('image_2.png') no-repeat center;
@@ -54,9 +52,11 @@
             box-shadow: 0 0 60px rgba(0,0,0,0.9); overflow: hidden;
         }
 
+        /* මෙහි අගයන් මදක් වෙනස් කර නිවැරදි ඇස ඇති ස්ථානයට සකසා ඇත */
         #target {
             position: absolute; width: 20px; height: 20px; background: rgba(255, 204, 0, 0.2);
-            border: 2px solid var(--gold); border-radius: 50%; top: 29.81%; left: 30.32%; 
+            border: 2px solid var(--gold); border-radius: 50%; 
+            top: 29.3%; left: 31.1%; 
             transform: translate(-50%, -50%); display: none; z-index: 50; box-shadow: 0 0 15px var(--gold);
         }
 
@@ -72,7 +72,6 @@
             box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
         }
 
-        /* Result Card - Positioned to the side to see the mark */
         #result-card {
             display: none; position: absolute; top: 50%; left: 75%; 
             transform: translate(-50%, -50%); background: rgba(0,0,0,0.92);
@@ -143,7 +142,6 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // ඔබ ලබාදුන් සම්පූර්ණ අලි ශරීරයේ ඛණ්ඩාංක
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -191,7 +189,6 @@
             } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
         }
 
-        // Point-in-Polygon detection
         function isInside(x, y) {
             let inside = false;
             for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
@@ -210,12 +207,10 @@
                 const hand = results.multiHandLandmarks[0];
                 const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
                 
-                // Cursor position
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
                 eye.style.left = x + 'px'; eye.style.top = y + 'px';
 
-                // Gesture: Thumb Open
                 const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
                 if (thumbOpen) {
                     if (!triggerStartTime) triggerStartTime = Date.now();
@@ -228,7 +223,6 @@
             isDone = true;
             popSound.play(); 
             
-            // Show Mark and Target
             target.style.display = 'block';
             userMark.style.left = finalX + 'px'; 
             userMark.style.top = finalY + 'px';
@@ -246,13 +240,11 @@
             let status = "";
 
             if (isInside(xPct, yPct)) {
-                // Calculate score based on distance if inside body
                 score = Math.max(0, 100 - (dist * 0.18)); 
                 if (dist < 8) score = 99.8; 
                 winSound.play();
                 status = "ON THE BODY! 🐘";
             } else {
-                // Outside body
                 score = 0;
                 status = "OUTSIDE! 😅";
             }
