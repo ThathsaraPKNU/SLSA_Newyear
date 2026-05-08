@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Elephant Eye Coordinates</title>
+    <style>
+        body {
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #fff;
+            font-family: sans-serif;
+        }
+
+        #container {
+            position: relative;
+            width: 80vw;
+            max-width: 900px;
+            height: 65vh;
+            max-height: 600px;
+            background: #fff url('image_2.png') no-repeat center;
+            background-size: contain;
+            border: 5px solid #444;
+            cursor: crosshair;
+        }
+
+        #info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #222;
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .coord-val {
+            font-size: 1.5rem;
+            color: #39ff14;
+            font-weight: bold;
+        }
+
+        #pointer {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>අලියාගේ ඇස මත Click කරන්න</h2>
+    
+    <div id="container" onclick="getCoords(event)">
+        <div id="pointer"></div>
+    </div>
+
+    <div id="info-box">
+        <p>ඔබේ CSS එකට මෙම අගයන් ඇතුළත් කරන්න:</p>
+        <div class="coord-val" id="display-coords">Top: --% | Left: --%</div>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">
+            (මෙම අගයන් `#target` style එකේ top සහ left ලෙස භාවිතා කරන්න)
+        </p>
+    </div>
+
+    <script>
+        function getCoords(event) {
+            const container = document.getElementById('container');
+            const rect = container.getBoundingClientRect();
+            
+            // Mouse එක click කළ ස්ථානය container එකට සාපේක්ෂව ගණනය කිරීම
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // ප්‍රතිශතයක් ලෙස වෙනස් කිරීම
+            const leftPercent = (x / rect.width) * 100;
+            const topPercent = (y / rect.height) * 100;
+            
+            // Screen එකේ පෙන්වීම
+            document.getElementById('display-coords').innerText = 
+                `top: ${topPercent.toFixed(2)}%;  left: ${leftPercent.toFixed(2)}%;`;
+            
+            // Click කළ තැන රතු තිතක් පෙන්වීම
+            const pointer = document.getElementById('pointer');
+            pointer.style.left = leftPercent + '%';
+            pointer.style.top = topPercent + '%';
+            pointer.style.display = 'block';
+            
+            console.log("CSS values:", `top: ${topPercent.toFixed(2)}%; left: ${leftPercent.toFixed(2)}%;`);
+        }
+    </script>
+</body>
+</html>
