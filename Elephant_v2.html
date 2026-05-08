@@ -111,7 +111,6 @@
         <div id="result-card">
             <h2 id="status-txt" style="color:#fff; font-size: 2rem; margin: 0;">SCORE</h2>
             <span class="score-val" id="score-pct">0%</span>
-            <p id="dist-txt" style="color:#888; font-size: 1.1rem;"></p>
             <button id="res-btn" onclick="location.reload()">RETRY 🔄</button>
         </div>
         <video id="webcam" playsinline></video>
@@ -141,8 +140,13 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // ඔබ ලබාදුන් ඇඟේ Coordinates
-        const elephantPolygon = [{x:20.45,y:8.18},{x:39.83,y:8.74},{x:69.33,y:9.3},{x:84.08,y:25.25},{x:86.45,y:44.01},{x:89.58,y:89.79},{x:66.08,y:91.48},{x:50.95,y:92.42},{x:25.45,y:92.04},{x:12.45,y:89.04},{x:14.45,y:39.13},{x:14.58,y:27.5}];
+        // ඔබ ලබාදුන් අලියාගේ ශරීරයේ සීමාවන් (Polygon Coordinates)
+        const elephantPolygon = [
+            {x: 20.45, y: 8.18}, {x: 39.83, y: 8.74}, {x: 69.33, y: 9.3},
+            {x: 84.08, y: 25.25}, {x: 86.45, y: 44.01}, {x: 89.58, y: 89.79},
+            {x: 66.08, y: 91.48}, {x: 50.95, y: 92.42}, {x: 25.45, y: 92.04},
+            {x: 12.45, y: 89.04}, {x: 14.45, y: 39.13}, {x: 14.58, y: 27.5}
+        ];
 
         let isDone = false;
         let gestureActive = false; 
@@ -166,6 +170,7 @@
             } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
         }
 
+        // ලකුණ අලියාගේ ශරීරය ඇතුළතදැයි පරීක්ෂා කිරීම
         function isInside(x, y) {
             let inside = false;
             for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
@@ -184,7 +189,6 @@
                 const y = indexTip.y * area.offsetHeight;
                 eye.style.left = `${x}px`; eye.style.top = `${y}px`;
 
-                // Thumb Detection Logic
                 const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
                 if (thumbOpen) {
                     if (!triggerStartTime) triggerStartTime = Date.now();
@@ -206,19 +210,18 @@
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
             let score = 0;
+            // ශරීරය ඇතුළත නම් ලකුණු ගණනය කිරීම
             if (isInside(xPct, yPct)) {
-                score = Math.max(0, 100 - (dist / 1.8));
-                if (dist < 8) score = 99.8; 
+                score = Math.max(10, 100 - (dist / 1.8)); // ඇතුළත නම් අවම ලකුණු 10ක් ලැබේ
+                if (dist < 8) score = 99.8; // ඉතාම නිවැරදි තැන නම් 99.8% ලැබේ
                 winSound.play();
+                document.getElementById('status-txt').innerText = score > 90 ? "EXCELLENT! 🏆" : "ON THE BODY! 👍";
+            } else {
+                score = 0;
+                document.getElementById('status-txt').innerText = "MISSED! 😅";
             }
 
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
-            document.getElementById('dist-txt').innerText = `Distance: ${dist.toFixed(0)}px`;
-            
-            if(score > 95) document.getElementById('status-txt').innerText = "EXCELLENT! 🏆";
-            else if(score > 10) document.getElementById('status-txt').innerText = "ON THE BODY! 👍";
-            else document.getElementById('status-txt').innerText = "MISSED! 😅";
-
             resultCard.style.display = 'block';
             topMsg.innerText = "GAME OVER";
         }
