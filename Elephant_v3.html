@@ -60,10 +60,13 @@
             transform: translate(-50%, -50%); display: none; z-index: 50; box-shadow: 0 0 15px var(--gold);
         }
 
+        /* මෙතැන clock අයිකනය වෙනුවට red mark එකක් සකස් කළා */
         #user-mark {
-            position: absolute; width: 40px; height: 40px;
-            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
-            background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
+            position: absolute; width: 18px; height: 18px;
+            background: var(--red);
+            border-radius: 50%; 
+            box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8);
+            transform: translate(-50%, -50%); display: none; z-index: 60;
         }
 
         #eye-cursor {
@@ -145,7 +148,7 @@
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
-            {x: 5.16, y: 70.29}, {x: 7.96, y: 68.64}, {x: 11.76, y: 63.84}, {x: 13.46, y: 59.64}, {x: 13.46, y: 66.24}, 
+            {x: 5.16, y: 70.29}, {x: 7.96, y: 68.64}, {x: 11.76, y: 63.84}, {x: 13.46, y: 59.64}, {x: 13.46, y: 59.64}, 
             {x: 12.16, y: 68.79}, {x: 12.86, y: 69.84}, {x: 12.96, y: 73.44}, {x: 11.46, y: 82.44}, {x: 11.56, y: 87.84}, 
             {x: 14.66, y: 92.04}, {x: 17.86, y: 90.84}, {x: 19.16, y: 85.59}, {x: 17.76, y: 84.09}, {x: 16.36, y: 86.34}, 
             {x: 15.56, y: 84.84}, {x: 18.46, y: 72.84}, {x: 19.76, y: 63.69}, {x: 21.86, y: 59.34}, {x: 23.96, y: 51.69}, 
