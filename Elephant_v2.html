@@ -140,7 +140,13 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        const elephantPolygon = [{x: 20.45, y: 8.18}, {x: 39.83, y: 8.74}, {x: 69.33, y: 9.3}, {x: 84.08, y: 25.25}, {x: 86.45, y: 44.01}, {x: 89.58, y: 89.79}, {x: 66.08, y: 91.48}, {x: 50.95, y: 92.42}, {x: 25.45, y: 92.04}, {x: 12.45, y: 89.04}, {x: 14.45, y: 39.13}, {x: 14.58, y: 27.5}];
+        // අලියාගේ ශරීරයේ Polygon Coordinates (Baseline)
+        const elephantPolygon = [
+            {x: 20.45, y: 8.18}, {x: 39.83, y: 8.74}, {x: 69.33, y: 9.3},
+            {x: 84.08, y: 25.25}, {x: 86.45, y: 44.01}, {x: 89.58, y: 89.79},
+            {x: 66.08, y: 91.48}, {x: 50.95, y: 92.42}, {x: 25.45, y: 92.04},
+            {x: 12.45, y: 89.04}, {x: 14.45, y: 39.13}, {x: 14.58, y: 27.5}
+        ];
 
         let isDone = false;
         let gestureActive = false; 
@@ -203,13 +209,18 @@
             const yPct = (finalY / area.offsetHeight) * 100;
             const tx = target.offsetLeft; 
             const ty = target.offsetTop;
+            
+            // සැබෑ දුර (Distance) ගණනය කිරීම
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
             let score = 0;
             if (isInside(xPct, yPct)) {
-                // දුර අනුව ලකුණු ගණනය වේ. 10% අවම සීමාව ඉවත් කළා.
-                score = Math.max(0, 100 - (dist / 1.8)); 
+                // දුර වැඩිවත්ම ලකුණු ක්‍රමයෙන් අඩු වන සූත්‍රය (Linear Scoring)
+                score = Math.max(0, 100 - (dist * 0.18)); 
+                
+                // ඇසට ඉතාම ආසන්න නම් (8px ට අඩු දුරක්) 99.8% ලකුණු ලැබේ
                 if (dist < 8) score = 99.8; 
+                
                 winSound.play();
                 
                 let status = "ON THE BODY! 🐘";
