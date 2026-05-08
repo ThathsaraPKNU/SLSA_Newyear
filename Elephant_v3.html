@@ -21,6 +21,7 @@
             min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
         }
 
+        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
@@ -45,6 +46,7 @@
 
         .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 10px 0; }
         
+        /* Game Container */
         #game-container {
             position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
             background: #fff url('image_2.png') no-repeat center;
@@ -59,7 +61,7 @@
         }
 
         #user-mark {
-            position: absolute; width: 50px; height: 50px;
+            position: absolute; width: 40px; height: 40px;
             background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
             background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
         }
@@ -70,16 +72,17 @@
             box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
         }
 
+        /* Result Card - Positioned to the side to see the mark */
         #result-card {
-            display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: rgba(0,0,0,0.98);
-            padding: 40px; border-radius: 30px; border: 4px solid var(--gold);
-            text-align: center; z-index: 200; width: 85%; max-width: 500px;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
+            display: none; position: absolute; top: 50%; left: 75%; 
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.92);
+            padding: 30px; border-radius: 30px; border: 4px solid var(--gold);
+            text-align: center; z-index: 200; width: 220px;
+            box-shadow: 0 0 100px rgba(0,0,0,1); backdrop-filter: blur(10px);
         }
 
-        .score-val { font-size: 5rem; color: var(--gold); font-weight: 900; display: block; margin: 15px 0; }
-        #res-btn { margin-top: 20px; padding: 16px 45px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; }
+        .score-val { font-size: 3.5rem; color: var(--gold); font-weight: 900; display: block; margin: 10px 0; }
+        #res-btn { margin-top: 15px; padding: 12px 35px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; }
 
         .branding-footer { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 10px; }
         .footer-main { display: flex; align-items: center; gap: 20px; }
@@ -109,7 +112,7 @@
         <div id="user-mark"></div>
         <div id="eye-cursor"></div>
         <div id="result-card">
-            <h2 id="status-txt" style="color:#fff; font-size: 2rem; margin: 0;">SCORE</h2>
+            <h2 id="status-txt" style="color:#fff; font-size: 1.1rem; margin: 0;">SCORE</h2>
             <span class="score-val" id="score-pct">0%</span>
             <button id="res-btn" onclick="location.reload()">RETRY 🔄</button>
         </div>
@@ -140,7 +143,7 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // ඔබ ලබාදුන් සම්පූර්ණ coordinates
+        // ඔබ ලබාදුන් සම්පූර්ණ අලි ශරීරයේ ඛණ්ඩාංක
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -188,6 +191,7 @@
             } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
         }
 
+        // Point-in-Polygon detection
         function isInside(x, y) {
             let inside = false;
             for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
@@ -206,10 +210,12 @@
                 const hand = results.multiHandLandmarks[0];
                 const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
                 
+                // Cursor position
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
                 eye.style.left = x + 'px'; eye.style.top = y + 'px';
 
+                // Gesture: Thumb Open
                 const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
                 if (thumbOpen) {
                     if (!triggerStartTime) triggerStartTime = Date.now();
@@ -222,6 +228,7 @@
             isDone = true;
             popSound.play(); 
             
+            // Show Mark and Target
             target.style.display = 'block';
             userMark.style.left = finalX + 'px'; 
             userMark.style.top = finalY + 'px';
@@ -238,22 +245,20 @@
             let score = 0;
             let status = "";
 
-            // Polygon එක ඇතුළත ඕනෑම තැනක් ලකුණු ලබාදීම සඳහා වලංගු වේ
             if (isInside(xPct, yPct)) {
-                // දුර අනුව ලකුණු ගණනය වේ (0-100 අතර)
+                // Calculate score based on distance if inside body
                 score = Math.max(0, 100 - (dist * 0.18)); 
                 if (dist < 8) score = 99.8; 
                 winSound.play();
                 status = "ON THE BODY! 🐘";
             } else {
-                // Polygon එකෙන් පිටත ඕනෑම තැනක වැදුණහොත් ලකුණු 0 වේ
+                // Outside body
                 score = 0;
-                status = "OUTSIDE THE BODY! 😅";
+                status = "OUTSIDE! 😅";
             }
 
             if(score > 90) status = "EXCELLENT! 🏆";
             else if(score > 60) status = "GREAT SHOT! 👍";
-            else if(score > 0) status = "ON THE BODY! 🐘";
 
             document.getElementById('status-txt').innerText = status;
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
