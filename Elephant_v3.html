@@ -185,12 +185,10 @@
                 const hand = results.multiHandLandmarks[0];
                 const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
                 
-                // ඇඟිලි තුඩුවට අනුව Cursor එක චලනය කිරීම
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
                 eye.style.left = x + 'px'; eye.style.top = y + 'px';
 
-                // පින් එක තැබීම සඳහා මහපට ඇඟිල්ල විවෘත දැයි බැලීම (Gesture)
                 const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
                 if (thumbOpen) {
                     if (!triggerStartTime) triggerStartTime = Date.now();
@@ -201,7 +199,7 @@
 
         function finalizeMark(finalX, finalY) {
             isDone = true;
-            popSound.play(); // ලකුණු කරන මොහොතේම ශබ්දය ඇසෙයි
+            popSound.play(); 
             
             target.style.display = 'block';
             userMark.style.left = finalX + 'px'; 
@@ -216,21 +214,25 @@
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
             let score = 0;
-            // ශරීරයෙන් පිටත (හොඬවැල ඇතුළුව) ඕනෑම තැනක 0% වේ
+            let status = "";
+
+            // සංශෝධිත කොටස: අලියාගේ ශරීරය ඇතුළත දැයි ප්‍රථමයෙන් පරීක්ෂා කිරීම
             if (isInside(xPct, yPct)) {
+                // ශරීරය ඇතුළත නම් පමණක් ලකුණු ගණනය වේ
                 score = Math.max(0, 100 - (dist * 0.18)); 
                 if (dist < 8) score = 99.8; 
                 winSound.play();
                 
-                let status = "ON THE BODY! 🐘";
+                status = "ON THE BODY! 🐘";
                 if(score > 90) status = "EXCELLENT! 🏆";
                 else if(score > 60) status = "GREAT SHOT! 👍";
-                document.getElementById('status-txt').innerText = status;
             } else {
+                // ශරීරයෙන් පිටත (Boundary එකෙන් පිටත) ලකුණු 0% වේ
                 score = 0;
-                document.getElementById('status-txt').innerText = "OUTSIDE! 😅";
+                status = "OUTSIDE! 😅";
             }
 
+            document.getElementById('status-txt').innerText = status;
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
             resultCard.style.display = 'block';
             topMsg.innerText = "GAME OVER";
