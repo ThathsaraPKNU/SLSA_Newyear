@@ -1,203 +1,4 @@
-<!DOCTYPE html>
-<html lang="si">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>අලියාට ඇස තැබීම: AI Edition - SLSA - Korea</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    
-    <style>
-        :root { 
-            --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; 
-            --glass: rgba(255, 255, 255, 0.1);
-        }
-        
-        body { 
-            margin: 0; background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
-            color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
-        }
-
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--dark); z-index: 1000; display: flex;
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
-        
-        .main-logo-big { width: 130px; height: 130px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3)); }
-
-        .start-btn { 
-            padding: 22px 60px; background: var(--neon); color: #000; border: none; 
-            border-radius: 50px; font-weight: 900; font-size: 1.5rem; cursor: pointer; 
-            box-shadow: 0 0 30px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            margin-bottom: 30px; text-transform: uppercase;
-        }
-        .start-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 50px var(--neon); }
-
-        .dev-credit-box {
-            font-size: 1.3rem; color: var(--gold); font-weight: bold; letter-spacing: 1px;
-            border: 2px solid var(--gold); padding: 10px 30px; border-radius: 35px;
-            background: rgba(255, 204, 0, 0.1); backdrop-filter: blur(5px);
-        }
-
-        .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 10px 0; }
-        
-        #game-container {
-            position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
-            background: #fff url('image_2.png') no-repeat center;
-            background-size: contain; border: 8px solid #333; border-radius: 25px;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9); overflow: hidden;
-        }
-
-        #target {
-            position: absolute; width: 20px; height: 20px; background: rgba(255, 204, 0, 0.2);
-            border: 2px solid var(--gold); border-radius: 50%; top: 29.81%; left: 30.32%; 
-            transform: translate(-50%, -50%); display: none; z-index: 50; box-shadow: 0 0 15px var(--gold);
-        }
-
-        #user-mark {
-            position: absolute; width: 50px; height: 50px;
-            background: url('https://cdn-icons-png.flaticon.com/512/595/595053.png') no-repeat center;
-            background-size: contain; transform: translate(-50%, -50%); display: none; z-index: 60;
-        }
-
-        #eye-cursor {
-            position: absolute; width: 18px; height: 18px; background-color: var(--red);
-            border-radius: 50%; pointer-events: none; z-index: 100; display: none;
-            box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
-        }
-
-        #result-card {
-            display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: rgba(0,0,0,0.98);
-            padding: 40px; border-radius: 30px; border: 4px solid var(--gold);
-            text-align: center; z-index: 200; width: 85%; max-width: 500px;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
-        }
-
-        .score-val { font-size: 5rem; color: var(--gold); font-weight: 900; display: block; margin: 15px 0; }
-        #res-btn { margin-top: 20px; padding: 16px 45px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; }
-
-        .branding-footer { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 10px; }
-        .footer-main { display: flex; align-items: center; gap: 20px; }
-        .bottom-logo { width: 70px; height: 70px; }
-        .footer-text h2 { color: var(--gold); margin: 0; font-size: 1.8rem; font-weight: 900; }
-        #webcam { display: none; }
-    </style>
-</head>
-<body>
-
-    <audio id="popSound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
-
-    <div id="splash-screen">
-        <img src="image_1.png" class="main-logo-big">
-        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
-        <h1 style="color:var(--gold); font-size: 3.5rem; margin: 10px 0; font-weight: 900;">අලියාට ඇස තැබීම</h1>
-        <h2 style="color:var(--neon); margin: 0 0 30px 0; font-size: 2rem;">AI EDITION</h2>
-        <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
-        <div class="dev-credit-box">Developed by Thathsara Nanayakkara</div>
-    </div>
-
-    <div class="instruction" id="top-msg">සූදානම් වන්න...</div>
-
-    <div id="game-container">
-        <div id="target"></div>
-        <div id="user-mark"></div>
-        <div id="eye-cursor"></div>
-        <div id="result-card">
-            <h2 id="status-txt" style="color:#fff; font-size: 2rem; margin: 0;">SCORE</h2>
-            <span class="score-val" id="score-pct">0%</span>
-            <button id="res-btn" onclick="location.reload()">RETRY 🔄</button>
-        </div>
-        <video id="webcam" playsinline></video>
-    </div>
-
-    <div class="branding-footer">
-        <div class="footer-main">
-            <img src="image_1.png" class="bottom-logo">
-            <div class="footer-text">
-                <h2>අලියාට ඇස තැබීම: AI Edition</h2>
-                <p>SLSA - SOUTH KOREA</p>
-            </div>
-        </div>
-        <div style="color: var(--gold); font-weight: bold; border-top: 1px solid #333; padding-top: 10px; width: 300px; text-align: center;">
-            Developed by Thathsara Nanayakkara
-        </div>
-    </div>
-
-    <script type="module">
-        const eye = document.getElementById('eye-cursor');
-        const target = document.getElementById('target');
-        const userMark = document.getElementById('user-mark');
-        const topMsg = document.getElementById('top-msg');
-        const area = document.getElementById('game-container');
-        const resultCard = document.getElementById('result-card');
-        const videoElement = document.getElementById('webcam');
-        const popSound = document.getElementById('popSound');
-        const winSound = document.getElementById('winSound');
-
-        // ඔබ ලබාදුන් අලියාගේ ශරීරයේ සීමාවන් (Polygon Coordinates)
-        const elephantPolygon = [
-            {x: 20.45, y: 8.18}, {x: 39.83, y: 8.74}, {x: 69.33, y: 9.3},
-            {x: 84.08, y: 25.25}, {x: 86.45, y: 44.01}, {x: 89.58, y: 89.79},
-            {x: 66.08, y: 91.48}, {x: 50.95, y: 92.42}, {x: 25.45, y: 92.04},
-            {x: 12.45, y: 89.04}, {x: 14.45, y: 39.13}, {x: 14.58, y: 27.5}
-        ];
-
-        let isDone = false;
-        let gestureActive = false; 
-        let triggerStartTime = null;
-
-        window.startApp = function() {
-            document.getElementById('splash-screen').style.display = 'none';
-            initAI();
-        }
-
-        async function initAI() {
-            topMsg.innerText = "Initializing AI Camera...";
-            try {
-                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
-                hands.onResults(onResults);
-                const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
-                await camera.start();
-                topMsg.innerText = "ඇස තැබීමට මහපට ඇඟිල්ල විහිදුවන්න!";
-                gestureActive = true;
-            } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
-        }
-
-        // ලකුණ අලියාගේ ශරීරය ඇතුළතදැයි පරීක්ෂා කිරීම
-        function isInside(x, y) {
-            let inside = false;
-            for (let i = 0, j = elephantPolygon.length - 1; i < elephantPolygon.length; j = i++) {
-                if (((elephantPolygon[i].y > y) != (elephantPolygon[j].y > y)) && (x < (elephantPolygon[j].x - elephantPolygon[i].x) * (y - elephantPolygon[i].y) / (elephantPolygon[j].y - elephantPolygon[i].y) + elephantPolygon[i].x)) inside = !inside;
-            }
-            return inside;
-        }
-
-        function onResults(results) {
-            if (isDone || !gestureActive) return;
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                eye.style.display = 'block';
-                const hand = results.multiHandLandmarks[0];
-                const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
-                const x = (1 - indexTip.x) * area.offsetWidth;
-                const y = indexTip.y * area.offsetHeight;
-                eye.style.left = `${x}px`; eye.style.top = `${y}px`;
-
-                const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
-                if (thumbOpen) {
-                    if (!triggerStartTime) triggerStartTime = Date.now();
-                    else if (Date.now() - triggerStartTime > 300) finalizeMark(x, y);
-                } else { triggerStartTime = null; }
-            } else { eye.style.display = 'none'; }
-        }
-
-        function finalizeMark(finalX, finalY) {
+function finalizeMark(finalX, finalY) {
             isDone = true;
             popSound.play();
             target.style.display = 'block';
@@ -210,21 +11,24 @@
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
             let score = 0;
-            // ශරීරය ඇතුළත නම් ලකුණු ගණනය කිරීම
+            // අලියාගේ ඇඟ ඇතුළතදැයි බලන පරීක්ෂාව
             if (isInside(xPct, yPct)) {
-                score = Math.max(10, 100 - (dist / 1.8)); // ඇතුළත නම් අවම ලකුණු 10ක් ලැබේ
-                if (dist < 8) score = 99.8; // ඉතාම නිවැරදි තැන නම් 99.8% ලැබේ
+                // දුර අනුව ලකුණු ගණනය වේ (දුර වැඩි වන විට ලකුණු අඩු වේ, නමුත් 10% ට වඩා අඩු නොවේ)
+                score = Math.max(10, 100 - (dist / 1.8)); 
+                
+                // ඉතාම නිවැරදි නම් (දුර පරතරය 8px ට අඩු නම්) 99.8% ලකුණු ලැබේ
+                if (dist < 8) score = 99.8; 
+                
                 winSound.play();
-                document.getElementById('status-txt').innerText = score > 90 ? "EXCELLENT! 🏆" : "ON THE BODY! 👍";
+                if(score > 95) document.getElementById('status-txt').innerText = "EXCELLENT! 🏆";
+                else if(score > 60) document.getElementById('status-txt').innerText = "GOOD SHOT! 👍";
+                else document.getElementById('status-txt').innerText = "ON THE BODY! 🐘";
             } else {
                 score = 0;
-                document.getElementById('status-txt').innerText = "MISSED! 😅";
+                document.getElementById('status-txt').innerText = "OUTSIDE! 😅";
             }
 
             document.getElementById('score-pct').innerText = score.toFixed(1) + "%";
             resultCard.style.display = 'block';
             topMsg.innerText = "GAME OVER";
         }
-    </script>
-</body>
-</html>
