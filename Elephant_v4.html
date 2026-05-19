@@ -2,7 +2,7 @@
 <html lang="si">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>අලියාට ඇස තැබීම: AI Edition - SLSA - Korea</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
@@ -18,45 +18,47 @@
             margin: 0; background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
             color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: 100vh; overflow: hidden; padding: 20px 0; box-sizing: border-box;
+            min-height: 100vh; overflow-x: hidden; padding: 10px 0; box-sizing: border-box;
         }
 
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            padding: 20px; box-sizing: border-box;
         }
         
-        .main-logo-big { width: 130px; height: 130px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3)); }
+        .main-logo-big { width: 100px; height: 100px; margin-bottom: 20px; filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.3)); }
 
         .start-btn { 
-            padding: 22px 60px; background: var(--neon); color: #000; border: none; 
-            border-radius: 50px; font-weight: 900; font-size: 1.5rem; cursor: pointer; 
-            box-shadow: 0 0 30px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            margin-bottom: 30px; text-transform: uppercase;
+            padding: 15px 40px; background: var(--neon); color: #000; border: none; 
+            border-radius: 50px; font-weight: 900; font-size: 1.2rem; cursor: pointer; 
+            box-shadow: 0 0 20px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            margin-bottom: 20px; text-transform: uppercase;
         }
-        .start-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 50px var(--neon); }
+        .start-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--neon); }
 
         .dev-credit-box {
-            font-size: 1.3rem; color: var(--gold); font-weight: bold; letter-spacing: 1px;
-            border: 2px solid var(--gold); padding: 10px 30px; border-radius: 35px;
+            font-size: 1rem; color: var(--gold); font-weight: bold; letter-spacing: 1px;
+            border: 2px solid var(--gold); padding: 8px 20px; border-radius: 35px;
             background: rgba(255, 204, 0, 0.1); backdrop-filter: blur(5px);
         }
 
-        .instruction { color: var(--neon); font-size: 1.4rem; font-weight: bold; text-align: center; margin: 10px 0; }
+        .instruction { color: var(--neon); font-size: 1.2rem; font-weight: bold; text-align: center; margin: 5px 0; padding: 0 10px; }
         
         #game-container {
-            position: relative; width: 85vw; max-width: 950px; height: 62vh; max-height: 580px;
+            position: relative; width: 92vw; max-width: 600px; height: 50vh; max-height: 450px;
             background: #fff url('image_2.png') no-repeat center;
-            background-size: contain; border: 8px solid #333; border-radius: 25px;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9); overflow: visible;
+            background-size: contain; border: 4px solid #333; border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9); overflow: visible;
         }
 
+        /* නිවැරදි කරන ලද Target පිහිටීම (අලියාගේ ඇස මතට) */
         #target {
-            position: absolute; width: 20px; height: 20px; background: rgba(255, 204, 0, 0.2);
+            position: absolute; width: 22px; height: 22px; background: rgba(255, 204, 0, 0.2);
             border: 2px solid var(--gold); border-radius: 50%; 
-            top: 29.3%; 
-            left: 32.5%; 
+            top: 45.2%; 
+            left: 29.2%; 
             transform: translate(-50%, -50%); display: none; z-index: 50; box-shadow: 0 0 15px var(--gold);
         }
 
@@ -74,21 +76,23 @@
             box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
         }
 
+        /* මොබයිල් ෆෝන් වලට ගැළපෙන සේ මධ්‍යගත කරන ලද රිසල්ට් පැනලය */
         #result-card {
-            display: none; position: absolute; top: 50%; left: 98%; 
-            transform: translateY(-50%); background: rgba(0,0,0,0.92);
-            padding: 30px; border-radius: 30px; border: 4px solid var(--gold);
-            text-align: center; z-index: 200; width: 220px;
-            box-shadow: 0 0 100px rgba(0,0,0,1); backdrop-filter: blur(10px);
+            display: none; position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.95);
+            padding: 25px; border-radius: 25px; border: 4px solid var(--gold);
+            text-align: center; z-index: 200; width: 80%; max-width: 240px;
+            box-shadow: 0 0 50px rgba(0,0,0,1); backdrop-filter: blur(10px);
         }
 
-        .score-val { font-size: 3.5rem; color: var(--gold); font-weight: 900; display: block; margin: 10px 0; }
-        #res-btn { margin-top: 15px; padding: 12px 35px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; }
+        .score-val { font-size: 3rem; color: var(--gold); font-weight: 900; display: block; margin: 5px 0; }
+        #res-btn { margin-top: 15px; padding: 10px 30px; background: var(--neon); color: #000; border: none; border-radius: 35px; font-weight: 900; cursor: pointer; font-size: 1rem; }
 
-        .branding-footer { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 10px; }
-        .footer-main { display: flex; align-items: center; gap: 20px; }
-        .bottom-logo { width: 70px; height: 70px; }
-        .footer-text h2 { color: var(--gold); margin: 0; font-size: 1.8rem; font-weight: 900; }
+        .branding-footer { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px; padding-bottom: 5px; }
+        .footer-main { display: flex; align-items: center; gap: 15px; }
+        .bottom-logo { width: 50px; height: 50px; }
+        .footer-text h2 { color: var(--gold); margin: 0; font-size: 1.2rem; font-weight: 900; }
+        .footer-text p { margin: 2px 0 0 0; font-size: 0.9rem; color: #aaa; }
         #webcam { display: none; }
     </style>
 </head>
@@ -99,9 +103,9 @@
 
     <div id="splash-screen">
         <img src="image_1.png" class="main-logo-big">
-        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
-        <h1 style="color:var(--gold); font-size: 3.5rem; margin: 10px 0; font-weight: 900;">අලියාට ඇස තැබීම</h1>
-        <h2 style="color:var(--neon); margin: 0 0 30px 0; font-size: 2rem;">AI EDITION</h2>
+        <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; padding: 0 10px;">ශ්‍රී ලාංකික ශිෂ්‍ය සංගමය - දකුණු කොරියාව</div>
+        <h1 style="color:var(--gold); font-size: 2.5rem; margin: 5px 0; font-weight: 900;">අලියාට ඇස තැබීම</h1>
+        <h2 style="color:var(--neon); margin: 0 0 25px 0; font-size: 1.5rem;">AI EDITION</h2>
         <button class="start-btn" onclick="startApp()">ක්‍රීඩාව අරඹන්න 🐘</button>
         <div class="dev-credit-box">Developed by Thathsara Nanayakkara</div>
     </div>
@@ -128,7 +132,7 @@
                 <p>SLSA - SOUTH KOREA</p>
             </div>
         </div>
-        <div style="color: var(--gold); font-weight: bold; border-top: 1px solid #333; padding-top: 10px; width: 300px; text-align: center;">
+        <div style="color: var(--gold); font-weight: bold; border-top: 1px solid #333; padding-top: 8px; width: 80%; max-width: 300px; text-align: center; font-size: 0.9rem;">
             Developed by Thathsara Nanayakkara
         </div>
     </div>
@@ -144,6 +148,7 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
+        // නිවැරදි කරන ලද අලියාගේ හැඩය (Polygon)
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -202,52 +207,23 @@
             return inside;
         }
 
-        // ත්‍රිමාණ අවකාශයේ සන්ධි දෙකක් අතර දුර මැනීම සඳහා
-        function getDistance3D(pt1, pt2) {
-            return Math.sqrt(
-                Math.pow(pt1.x - pt2.x, 2) +
-                Math.pow(pt1.y - pt2.y, 2) +
-                Math.pow(pt1.z - pt2.z, 2)
-            );
-        }
-
         function onResults(results) {
             if (isDone || !gestureActive) return;
-            
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 eye.style.display = 'block';
                 const hand = results.multiHandLandmarks[0];
+                const indexTip = hand[8]; const indexMcp = hand[5]; const thumbTip = hand[4];
                 
-                // අවශ්‍ය වන ඇඟිලි සලකුණු (Landmarks)
-                const thumbTip = hand[4];
-                const thumbMcp = hand[2]; 
-                const indexTip = hand[8]; 
-                
-                // 1. Index Finger එකෙන් Pointer එක විතරක් Free Move කිරීම (1st Image ලොජික් එක)
                 const x = (1 - indexTip.x) * area.offsetWidth;
                 const y = indexTip.y * area.offsetHeight;
-                
-                eye.style.left = x + 'px'; 
-                eye.style.top = y + 'px';
+                eye.style.left = x + 'px'; eye.style.top = y + 'px';
 
-                // 2. Thumb එක දිග හැරියම Point එක Place කිරීම (2nd Image ලොජික් එක)
-                const thumbExtension = getDistance3D(thumbTip, thumbMcp);
-                
-                // මහපට ඇඟිල්ල දිග හැර ඇති බව හඳුනාගැනීම (ප්‍රශස්ත Threshold අගය: 0.08)
-                if (thumbExtension > 0.08) {
-                    if (!triggerStartTime) {
-                        triggerStartTime = Date.now();
-                    } else if (Date.now() - triggerStartTime > 300) { 
-                        // තත්පර 0.3 ක් එක දිගට දිග හැරගෙන සිටියොත් ලකුණ ස්ථිර කරයි
-                        finalizeMark(x, y);
-                    }
-                } else { 
-                    triggerStartTime = null; 
-                }
-            } else { 
-                eye.style.display = 'none'; 
-                triggerStartTime = null;
-            }
+                const thumbOpen = Math.abs(thumbTip.x - indexMcp.x) > 0.10;
+                if (thumbOpen) {
+                    if (!triggerStartTime) triggerStartTime = Date.now();
+                    else if (Date.now() - triggerStartTime > 300) finalizeMark(x, y);
+                } else { triggerStartTime = null; }
+            } else { eye.style.display = 'none'; }
         }
 
         function finalizeMark(finalX, finalY) {
@@ -271,8 +247,9 @@
             let status = "";
 
             if (isInside(xPct, yPct)) {
-                score = Math.max(0, 100 - (dist * 0.18)); 
-                if (dist < 8) score = 99.8; 
+                // දුර අනුව ලකුණු හැදීම (මොබයිල් වලට ගැළපෙන පරිදි පරිමාණය සකස් කර ඇත)
+                score = Math.max(0, 100 - (dist * 0.35)); 
+                if (dist < 12) score = 99.8; 
                 winSound.play();
                 status = "ON THE BODY! 🐘";
             } else {
