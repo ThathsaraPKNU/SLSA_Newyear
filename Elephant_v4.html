@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>අලියාට ඇස තැබීම: AI Edition - SLSA - Korea</title>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    
+
     <style>
         :root { 
             --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; 
@@ -186,7 +186,7 @@
                 hands.onResults(onResults);
                 const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
                 await camera.start();
-                topMsg.innerText = "ඇස තැබීමට අනෙක් අතේ ඇඟිලි 5ම පෙන්වන්න!";
+                topMsg.innerText = "එක් අතකින් point කරන්න, අනෙක් අතේ ඇඟිලි 5ම පෙන්වන්න!";
                 gestureActive = true;
             } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
         }
@@ -202,8 +202,17 @@
             return inside;
         }
 
+        function isIndexPointing(hand) {
+            const indexOpen  = hand[8].y < hand[6].y;
+            const middleFold = hand[12].y > hand[10].y;
+            const ringFold   = hand[16].y > hand[14].y;
+            const pinkyFold  = hand[20].y > hand[18].y;
+
+            return indexOpen && middleFold && ringFold && pinkyFold;
+        }
+
         function isFiveFingersOpen(hand) {
-            const thumbOpen  = Math.abs(hand[4].x - hand[2].x) > 0.10;
+            const thumbOpen  = Math.abs(hand[4].x - hand[2].x) > 0.08;
             const indexOpen  = hand[8].y  < hand[6].y;
             const middleOpen = hand[12].y < hand[10].y;
             const ringOpen   = hand[16].y < hand[14].y;
@@ -216,27 +225,40 @@
             if (isDone || !gestureActive) return;
 
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                eye.style.display = 'block';
 
-                const hand1 = results.multiHandLandmarks[0];
-                const indexTip = hand1[8];
+                let cursorHand = null;
+                let triggerHand = null;
 
-                const x = (1 - indexTip.x) * area.offsetWidth;
-                const y = indexTip.y * area.offsetHeight;
+                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                    const hand = results.multiHandLandmarks[i];
 
-                eye.style.left = x + 'px';
-                eye.style.top = y + 'px';
+                    if (isIndexPointing(hand)) {
+                        cursorHand = hand;
+                    } else if (isFiveFingersOpen(hand)) {
+                        triggerHand = hand;
+                    }
+                }
 
-                if (results.multiHandLandmarks.length > 1) {
-                    const hand2 = results.multiHandLandmarks[1];
+                if (cursorHand) {
+                    eye.style.display = 'block';
 
-                    if (isFiveFingersOpen(hand2)) {
+                    const indexTip = cursorHand[8];
+
+                    const x = (1 - indexTip.x) * area.offsetWidth;
+                    const y = indexTip.y * area.offsetHeight;
+
+                    eye.style.left = x + 'px';
+                    eye.style.top = y + 'px';
+
+                    if (triggerHand) {
                         if (!triggerStartTime) triggerStartTime = Date.now();
                         else if (Date.now() - triggerStartTime > 300) finalizeMark(x, y);
                     } else {
                         triggerStartTime = null;
                     }
+
                 } else {
+                    eye.style.display = 'none';
                     triggerStartTime = null;
                 }
 
