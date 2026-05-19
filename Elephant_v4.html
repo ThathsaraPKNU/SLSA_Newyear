@@ -53,12 +53,12 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.9); overflow: visible;
         }
 
-        /* නිවැරදි කරන ලද Target පිහිටීම (අලියාගේ ඇස මතට) */
+        /* [යාවත්කාලීන කළා] ඔයා ලබාදුන් නිවැරදිම Coordinates අනුව සකස් කළ ඇසේ පිහිටීම */
         #target {
             position: absolute; width: 22px; height: 22px; background: rgba(255, 204, 0, 0.2);
             border: 2px solid var(--gold); border-radius: 50%; 
-            top: 45.2%; 
-            left: 29.2%; 
+            top: 37.1%; 
+            left: 26.1%; 
             transform: translate(-50%, -50%); display: none; z-index: 50; box-shadow: 0 0 15px var(--gold);
         }
 
@@ -76,7 +76,7 @@
             box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
         }
 
-        /* මොබයිල් ෆෝන් වලට ගැළපෙන සේ මධ්‍යගත කරන ලද රිසල්ට් පැනලය */
+        /* මොබයිල් එකේ මැදටම එන පරිදි සකස් කළ Result Card එක */
         #result-card {
             display: none; position: absolute; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); background: rgba(0,0,0,0.95);
@@ -148,7 +148,7 @@
         const popSound = document.getElementById('popSound');
         const winSound = document.getElementById('winSound');
 
-        // නිවැරදි කරන ලද අලියාගේ හැඩය (Polygon)
+        // අලියාගේ හැඩය (Polygon)
         const elephantPolygon = [
             {x: 19.16, y: 9.69}, {x: 17.36, y: 14.49}, {x: 17.26, y: 18.24}, {x: 14.56, y: 24.99}, {x: 14.86, y: 32.04}, 
             {x: 14.36, y: 38.79}, {x: 13.66, y: 49.44}, {x: 12.76, y: 56.04}, {x: 9.76, y: 62.04}, {x: 5.06, y: 68.79}, 
@@ -239,15 +239,16 @@
             const xPct = (finalX / area.offsetWidth) * 100;
             const yPct = (finalY / area.offsetHeight) * 100;
             
-            const tx = target.offsetLeft; 
-            const ty = target.offsetTop;
+            // [යාවත්කාලීන කළා] අලුත් Coordinatespx අනුව JavaScript scoring ලක්ෂ්‍යය ද නිවැරදි කළා
+            const tx = area.offsetWidth * 0.261; /* left 26.1% */
+            const ty = area.offsetHeight * 0.371; /* top 37.1% */
             const dist = Math.sqrt(Math.pow(finalX - tx, 2) + Math.pow(finalY - ty, 2));
             
             let score = 0;
             let status = "";
 
             if (isInside(xPct, yPct)) {
-                // දුර අනුව ලකුණු හැදීම (මොබයිල් වලට ගැළපෙන පරිදි පරිමාණය සකස් කර ඇත)
+                // දුර අනුව ලකුණු දීම (මොබයිල් වලට ගැළපෙන සේ මනාව සකස් කර ඇත)
                 score = Math.max(0, 100 - (dist * 0.35)); 
                 if (dist < 12) score = 99.8; 
                 winSound.play();
