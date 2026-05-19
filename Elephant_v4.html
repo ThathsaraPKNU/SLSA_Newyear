@@ -182,13 +182,26 @@
             topMsg.innerText = "Initializing AI Camera...";
             try {
                 const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
+                hands.setOptions({ 
+                    maxNumHands: 2, 
+                    modelComplexity: 1, 
+                    minDetectionConfidence: 0.5, 
+                    minTrackingConfidence: 0.5 
+                });
                 hands.onResults(onResults);
-                const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
+                const camera = new Camera(videoElement, { 
+                    onFrame: async () => { 
+                        await hands.send({image: videoElement}); 
+                    }, 
+                    width: 640, 
+                    height: 480 
+                });
                 await camera.start();
                 topMsg.innerText = "එක් අතකින් point කරන්න, අනෙක් අතේ ඇඟිලි 5ම පෙන්වන්න!";
                 gestureActive = true;
-            } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
+            } catch(e) { 
+                topMsg.innerText = "කැමරා දෝෂයකි!"; 
+            }
         }
 
         function isInside(x, y) {
@@ -202,21 +215,12 @@
             return inside;
         }
 
-        function isIndexPointing(hand) {
-            const indexOpen  = hand[8].y < hand[6].y;
-            const middleFold = hand[12].y > hand[10].y;
-            const ringFold   = hand[16].y > hand[14].y;
-            const pinkyFold  = hand[20].y > hand[18].y;
-
-            return indexOpen && middleFold && ringFold && pinkyFold;
-        }
-
         function isFiveFingersOpen(hand) {
-            const thumbOpen  = Math.abs(hand[4].x - hand[2].x) > 0.08;
             const indexOpen  = hand[8].y  < hand[6].y;
             const middleOpen = hand[12].y < hand[10].y;
             const ringOpen   = hand[16].y < hand[14].y;
             const pinkyOpen  = hand[20].y < hand[18].y;
+            const thumbOpen  = Math.abs(hand[4].x - hand[9].x) > 0.12;
 
             return thumbOpen && indexOpen && middleOpen && ringOpen && pinkyOpen;
         }
@@ -225,40 +229,27 @@
             if (isDone || !gestureActive) return;
 
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                eye.style.display = 'block';
 
-                let cursorHand = null;
-                let triggerHand = null;
+                const cursorHand = results.multiHandLandmarks[0];
+                const indexTip = cursorHand[8];
 
-                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-                    const hand = results.multiHandLandmarks[i];
+                const x = (1 - indexTip.x) * area.offsetWidth;
+                const y = indexTip.y * area.offsetHeight;
 
-                    if (isIndexPointing(hand)) {
-                        cursorHand = hand;
-                    } else if (isFiveFingersOpen(hand)) {
-                        triggerHand = hand;
-                    }
-                }
+                eye.style.left = x + 'px';
+                eye.style.top = y + 'px';
 
-                if (cursorHand) {
-                    eye.style.display = 'block';
+                if (results.multiHandLandmarks.length > 1) {
+                    const triggerHand = results.multiHandLandmarks[1];
 
-                    const indexTip = cursorHand[8];
-
-                    const x = (1 - indexTip.x) * area.offsetWidth;
-                    const y = indexTip.y * area.offsetHeight;
-
-                    eye.style.left = x + 'px';
-                    eye.style.top = y + 'px';
-
-                    if (triggerHand) {
+                    if (isFiveFingersOpen(triggerHand)) {
                         if (!triggerStartTime) triggerStartTime = Date.now();
                         else if (Date.now() - triggerStartTime > 300) finalizeMark(x, y);
                     } else {
                         triggerStartTime = null;
                     }
-
                 } else {
-                    eye.style.display = 'none';
                     triggerStartTime = null;
                 }
 
