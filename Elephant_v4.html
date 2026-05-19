@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>අලියාට ඇස තැබීම: AI Edition - SLSA - Korea</title>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-
+    
     <style>
         :root { 
             --gold: #ffcc00; --neon: #39ff14; --dark: #050505; --red: #ff1111; 
@@ -72,7 +72,6 @@
             position: absolute; width: 18px; height: 18px; background-color: var(--red);
             border-radius: 50%; pointer-events: none; z-index: 100; display: none;
             box-shadow: 0 0 12px 5px rgba(255, 17, 17, 0.8); transform: translate(-50%, -50%);
-            transition: left 0.03s linear, top 0.03s linear;
         }
 
         #result-card {
@@ -174,10 +173,6 @@
         let gestureActive = false; 
         let triggerStartTime = null;
 
-        let smoothX = null;
-        let smoothY = null;
-        const SMOOTHING = 0.18;
-
         window.startApp = function() {
             document.getElementById('splash-screen').style.display = 'none';
             initAI();
@@ -186,34 +181,14 @@
         async function initAI() {
             topMsg.innerText = "Initializing AI Camera...";
             try {
-                const hands = new Hands({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-                });
-
-                hands.setOptions({ 
-                    maxNumHands: 2, 
-                    modelComplexity: 1, 
-                    minDetectionConfidence: 0.35, 
-                    minTrackingConfidence: 0.35 
-                });
-
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.75, minTrackingConfidence: 0.75 });
                 hands.onResults(onResults);
-
-                const camera = new Camera(videoElement, { 
-                    onFrame: async () => { 
-                        await hands.send({image: videoElement}); 
-                    }, 
-                    width: 640, 
-                    height: 480 
-                });
-
+                const camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
                 await camera.start();
-                topMsg.innerText = "එක් අතකින් point කරන්න, අනෙක් අතේ palm එක විවෘත කර ඇඟිලි පෙන්වන්න!";
+                topMsg.innerText = "ඇස තැබීමට මහපට ඇඟිල්ල විහිදුවන්න!";
                 gestureActive = true;
-
-            } catch(e) { 
-                topMsg.innerText = "කැමරා දෝෂයකි!"; 
-            }
+            } catch(e) { topMsg.innerText = "කැමරා දෝෂයකි!"; }
         }
 
         function isInside(x, y) {
@@ -227,69 +202,51 @@
             return inside;
         }
 
-        function isOpenPalm(hand) {
-            const indexOpen  = hand[8].y  < hand[6].y;
-            const middleOpen = hand[12].y < hand[10].y;
-            const ringOpen   = hand[16].y < hand[14].y;
-            const pinkyOpen  = hand[20].y < hand[18].y;
-
-            const openFingerCount = [indexOpen, middleOpen, ringOpen, pinkyOpen].filter(Boolean).length;
-
-            const palmWidth = Math.abs(hand[5].x - hand[17].x);
-            const palmVisible = palmWidth > 0.04;
-
-            return palmVisible && openFingerCount >= 3;
+        // ත්‍රිමාණ අවකාශයේ සන්ධි දෙකක් අතර දුර මැනීම සඳහා
+        function getDistance3D(pt1, pt2) {
+            return Math.sqrt(
+                Math.pow(pt1.x - pt2.x, 2) +
+                Math.pow(pt1.y - pt2.y, 2) +
+                Math.pow(pt1.z - pt2.z, 2)
+            );
         }
 
         function onResults(results) {
             if (isDone || !gestureActive) return;
-
+            
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-
                 eye.style.display = 'block';
+                const hand = results.multiHandLandmarks[0];
+                
+                // අවශ්‍ය වන ඇඟිලි සලකුණු (Landmarks)
+                const thumbTip = hand[4];
+                const thumbMcp = hand[2]; 
+                const indexTip = hand[8]; 
+                
+                // 1. Index Finger එකෙන් Pointer එක විතරක් Free Move කිරීම (1st Image ලොජික් එක)
+                const x = (1 - indexTip.x) * area.offsetWidth;
+                const y = indexTip.y * area.offsetHeight;
+                
+                eye.style.left = x + 'px'; 
+                eye.style.top = y + 'px';
 
-                const cursorHand = results.multiHandLandmarks[0];
-                const indexTip = cursorHand[8];
-
-                const rawX = (1 - indexTip.x) * area.offsetWidth;
-                const rawY = indexTip.y * area.offsetHeight;
-
-                if (smoothX === null || smoothY === null) {
-                    smoothX = rawX;
-                    smoothY = rawY;
-                } else {
-                    smoothX = smoothX + (rawX - smoothX) * SMOOTHING;
-                    smoothY = smoothY + (rawY - smoothY) * SMOOTHING;
-                }
-
-                eye.style.left = smoothX + 'px';
-                eye.style.top = smoothY + 'px';
-
-                let triggerDetected = false;
-
-                if (results.multiHandLandmarks.length > 1) {
-                    const triggerHand = results.multiHandLandmarks[1];
-
-                    if (isOpenPalm(triggerHand)) {
-                        triggerDetected = true;
-                    }
-                }
-
-                if (triggerDetected) {
+                // 2. Thumb එක දිග හැරියම Point එක Place කිරීම (2nd Image ලොජික් එක)
+                const thumbExtension = getDistance3D(thumbTip, thumbMcp);
+                
+                // මහපට ඇඟිල්ල දිග හැර ඇති බව හඳුනාගැනීම (ප්‍රශස්ත Threshold අගය: 0.08)
+                if (thumbExtension > 0.08) {
                     if (!triggerStartTime) {
                         triggerStartTime = Date.now();
-                    } else if (Date.now() - triggerStartTime > 450) {
-                        finalizeMark(smoothX, smoothY);
+                    } else if (Date.now() - triggerStartTime > 300) { 
+                        // තත්පර 0.3 ක් එක දිගට දිග හැරගෙන සිටියොත් ලකුණ ස්ථිර කරයි
+                        finalizeMark(x, y);
                     }
-                } else {
-                    triggerStartTime = null;
+                } else { 
+                    triggerStartTime = null; 
                 }
-
-            } else {
-                eye.style.display = 'none';
+            } else { 
+                eye.style.display = 'none'; 
                 triggerStartTime = null;
-                smoothX = null;
-                smoothY = null;
             }
         }
 
